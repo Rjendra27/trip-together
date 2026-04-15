@@ -1,9 +1,10 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { Send } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Send, ArrowLeft, MoreVertical, Flag } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import ReportBlockDialog from "@/components/ReportBlockDialog";
 
 interface ChatConversation {
   id: string;
@@ -34,23 +35,52 @@ export default function ChatPage() {
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState(SAMPLE_MESSAGES);
+  const [isTyping, setIsTyping] = useState(false);
+  const [showReport, setShowReport] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const selectedConvo = CONVERSATIONS.find(c => c.id === selectedChat);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const sendMessage = () => {
+    if (!message.trim()) return;
+    setMessages(prev => [...prev, { id: String(prev.length + 1), sender: "me", text: message, time: "Now" }]);
+    setMessage("");
+    // Simulate typing indicator
+    setIsTyping(true);
+    setTimeout(() => {
+      setIsTyping(false);
+      setMessages(prev => [...prev, { id: String(prev.length + 1), sender: "them", text: "That sounds great! 😊", time: "Now" }]);
+    }, 2000);
+  };
 
   if (selectedChat && selectedConvo) {
     return (
       <div className="flex flex-col h-screen pb-20">
-        {/* Chat header */}
         <div className="sticky top-0 z-30 flex items-center gap-3 bg-card/95 backdrop-blur-lg px-4 py-3 border-b border-border">
-          <Button variant="ghost" size="sm" onClick={() => setSelectedChat(null)}>←</Button>
-          <img src={selectedConvo.avatar} alt={selectedConvo.name} className="h-8 w-8 rounded-full object-cover" />
-          <div>
-            <p className="text-sm font-semibold">{selectedConvo.name}</p>
-            <p className="text-xs text-muted-foreground">{selectedConvo.online ? "Online" : "Offline"}</p>
+          <Button variant="ghost" size="icon" className="rounded-xl" onClick={() => setSelectedChat(null)}>
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div className="relative">
+            <img src={selectedConvo.avatar} alt={selectedConvo.name} className="h-9 w-9 rounded-full object-cover" />
+            {selectedConvo.online && <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-accent border-2 border-card" />}
           </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold">{selectedConvo.name}</p>
+            <p className="text-xs text-muted-foreground">
+              {isTyping ? (
+                <span className="text-accent animate-pulse">typing...</span>
+              ) : selectedConvo.online ? "Online" : "Offline"}
+            </p>
+          </div>
+          <Button variant="ghost" size="icon" className="rounded-xl" onClick={() => setShowReport(true)}>
+            <MoreVertical className="h-4 w-4" />
+          </Button>
         </div>
 
-        {/* Messages */}
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {messages.map(msg => (
             <motion.div
@@ -73,48 +103,34 @@ export default function ChatPage() {
               </div>
             </motion.div>
           ))}
+          {isTyping && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
+              <div className="bg-secondary rounded-2xl rounded-bl-md px-4 py-3 flex gap-1">
+                <span className="h-2 w-2 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: "0ms" }} />
+                <span className="h-2 w-2 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: "150ms" }} />
+                <span className="h-2 w-2 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: "300ms" }} />
+              </div>
+            </motion.div>
+          )}
+          <div ref={messagesEndRef} />
         </div>
 
-        {/* Input */}
         <div className="sticky bottom-20 bg-card border-t border-border p-3">
           <div className="flex gap-2">
             <Input
               placeholder="Type a message..."
               value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && message.trim()) {
-                  setMessages(prev => [...prev, {
-                    id: String(prev.length + 1),
-                    sender: "me",
-                    text: message,
-                    time: "Now",
-                  }]);
-                  setMessage("");
-                }
-              }}
+              onChange={e => setMessage(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter") sendMessage(); }}
               className="rounded-full"
             />
-            <Button
-              variant="gradient"
-              size="icon"
-              className="rounded-full shrink-0"
-              onClick={() => {
-                if (message.trim()) {
-                  setMessages(prev => [...prev, {
-                    id: String(prev.length + 1),
-                    sender: "me",
-                    text: message,
-                    time: "Now",
-                  }]);
-                  setMessage("");
-                }
-              }}
-            >
+            <Button variant="gradient" size="icon" className="rounded-full shrink-0" onClick={sendMessage}>
               <Send className="h-4 w-4" />
             </Button>
           </div>
         </div>
+
+        <ReportBlockDialog open={showReport} onClose={() => setShowReport(false)} userName={selectedConvo.name} />
       </div>
     );
   }
@@ -126,18 +142,19 @@ export default function ChatPage() {
       </div>
 
       <div className="divide-y divide-border">
-        {CONVERSATIONS.map((convo) => (
+        {CONVERSATIONS.map((convo, i) => (
           <motion.button
             key={convo.id}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: i * 0.05 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => setSelectedChat(convo.id)}
-            className="flex w-full items-center gap-3 px-4 py-3 hover:bg-secondary/50 transition-colors text-left"
+            className="flex w-full items-center gap-3 px-4 py-3.5 hover:bg-secondary/50 transition-colors text-left"
           >
             <div className="relative">
               <img src={convo.avatar} alt={convo.name} className="h-12 w-12 rounded-full object-cover" />
-              {convo.online && (
-                <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-accent border-2 border-card" />
-              )}
+              {convo.online && <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-accent border-2 border-card" />}
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between">

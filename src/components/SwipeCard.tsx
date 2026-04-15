@@ -1,5 +1,5 @@
 import { motion, useMotionValue, useTransform, PanInfo } from "framer-motion";
-import { MapPin, Briefcase, Star } from "lucide-react";
+import { MapPin, Star, Shield } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface SwipeCardProps {
@@ -27,6 +27,7 @@ export default function SwipeCard({
   const rotate = useTransform(x, [-200, 200], [-15, 15]);
   const likeOpacity = useTransform(x, [0, 100], [0, 1]);
   const nopeOpacity = useTransform(x, [-100, 0], [1, 0]);
+  const scale = useTransform(x, [-200, 0, 200], [0.95, 1, 0.95]);
 
   function handleDragEnd(_: any, info: PanInfo) {
     if (info.offset.x > 100) {
@@ -40,32 +41,38 @@ export default function SwipeCard({
     <motion.div
       drag="x"
       dragConstraints={{ left: 0, right: 0 }}
-      style={{ x, rotate }}
+      style={{ x, rotate, scale }}
       onDragEnd={handleDragEnd}
       className="absolute inset-0 cursor-grab active:cursor-grabbing"
     >
       <div className="relative h-full w-full overflow-hidden rounded-3xl bg-card shadow-elevated">
         <img src={avatar} alt={name} className="h-3/5 w-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/20 to-transparent" />
         
         {/* Like / Nope overlays */}
         <motion.div
           style={{ opacity: likeOpacity }}
-          className="absolute left-6 top-8 rotate-[-20deg] rounded-lg border-4 border-accent px-4 py-2"
+          className="absolute left-6 top-8 rotate-[-20deg] rounded-xl border-4 border-accent px-5 py-2"
         >
-          <span className="font-heading text-2xl font-bold text-accent">LIKE</span>
+          <span className="font-heading text-3xl font-bold text-accent">LIKE</span>
         </motion.div>
         <motion.div
           style={{ opacity: nopeOpacity }}
-          className="absolute right-6 top-8 rotate-[20deg] rounded-lg border-4 border-destructive px-4 py-2"
+          className="absolute right-6 top-8 rotate-[20deg] rounded-xl border-4 border-destructive px-5 py-2"
         >
-          <span className="font-heading text-2xl font-bold text-destructive">NOPE</span>
+          <span className="font-heading text-3xl font-bold text-destructive">NOPE</span>
         </motion.div>
 
         {/* Match badge */}
-        <div className="absolute right-4 top-4 flex items-center gap-1 rounded-full bg-accent px-3 py-1 text-accent-foreground">
+        <div className="absolute right-4 top-4 flex items-center gap-1 rounded-full bg-accent px-3 py-1.5 text-accent-foreground shadow-card">
           <Star className="h-3.5 w-3.5 fill-current" />
-          <span className="text-xs font-bold">{matchPercent}% Match</span>
+          <span className="text-xs font-bold">{matchPercent}%</span>
+        </div>
+
+        {/* Verified badge */}
+        <div className="absolute left-4 top-4 flex items-center gap-1 rounded-full bg-primary-foreground/20 backdrop-blur-md px-2.5 py-1 text-primary-foreground">
+          <Shield className="h-3 w-3" />
+          <span className="text-[10px] font-medium">Verified</span>
         </div>
 
         {/* Info */}
@@ -80,7 +87,7 @@ export default function SwipeCard({
           <p className="text-sm text-primary-foreground/70 line-clamp-2">{bio}</p>
           <div className="flex flex-wrap gap-1.5 pt-1">
             {interests.map((tag) => (
-              <Badge key={tag} variant="secondary" className="bg-primary-foreground/20 text-primary-foreground border-0 text-xs">
+              <Badge key={tag} variant="secondary" className="bg-primary-foreground/20 text-primary-foreground border-0 text-xs backdrop-blur-sm">
                 {tag}
               </Badge>
             ))}
