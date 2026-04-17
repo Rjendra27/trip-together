@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import ReviewsSection from "@/components/ReviewsSection";
 
 const INTERESTS = ["Trekking", "Photography", "Food", "Culture", "Beach", "Nightlife"];
 const PAST_TRIPS = [
@@ -115,6 +116,9 @@ export default function ProfilePage() {
             ))}
           </div>
         </div>
+
+        {/* Reviews */}
+        {user && <ReviewsSection userId={user.id} canReview={false} />}
 
         {/* Verification */}
         <div className="rounded-2xl bg-card p-4 shadow-card space-y-3">
