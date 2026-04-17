@@ -198,6 +198,7 @@ export type Database = {
           last_seen: string | null
           location: string | null
           online_status: boolean | null
+          phone_number: string | null
           phone_verified: boolean | null
           travel_style: string | null
           updated_at: string
@@ -217,6 +218,7 @@ export type Database = {
           last_seen?: string | null
           location?: string | null
           online_status?: boolean | null
+          phone_number?: string | null
           phone_verified?: boolean | null
           travel_style?: string | null
           updated_at?: string
@@ -236,6 +238,7 @@ export type Database = {
           last_seen?: string | null
           location?: string | null
           online_status?: boolean | null
+          phone_number?: string | null
           phone_verified?: boolean | null
           travel_style?: string | null
           updated_at?: string
