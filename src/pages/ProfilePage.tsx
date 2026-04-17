@@ -1,13 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { MapPin, Settings, Shield, Star, Camera, Edit, LogOut, Bell, ChevronRight, Lock, Phone, CreditCard } from "lucide-react";
+import { MapPin, Settings, Shield, Star, Edit, LogOut, Bell, ChevronRight, Lock, CreditCard, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import ReviewsSection from "@/components/ReviewsSection";
+import EditProfileDialog from "@/components/EditProfileDialog";
+import PhoneVerificationDialog from "@/components/PhoneVerificationDialog";
+import { toast } from "sonner";
 
-const INTERESTS = ["Trekking", "Photography", "Food", "Culture", "Beach", "Nightlife"];
 const PAST_TRIPS = [
   { destination: "Nepal", date: "Mar 2024", image: "https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=200&h=200&fit=crop" },
   { destination: "Thailand", date: "Jan 2024", image: "https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=200&h=200&fit=crop" },
@@ -16,20 +19,66 @@ const PAST_TRIPS = [
 
 const MENU_ITEMS = [
   { icon: Bell, label: "Notifications", path: "/notifications" },
-  { icon: Shield, label: "Verification", path: "#" },
   { icon: Lock, label: "Privacy & Safety", path: "#" },
   { icon: CreditCard, label: "Premium", path: "#" },
   { icon: Settings, label: "Settings", path: "#" },
 ];
 
+interface Profile {
+  user_id: string;
+  display_name: string | null;
+  bio: string | null;
+  location: string | null;
+  age: number | null;
+  interests: string[] | null;
+  avatar_url: string | null;
+  phone_number: string | null;
+  phone_verified: boolean | null;
+  id_verified: boolean | null;
+  verification_badge: boolean | null;
+}
+
 export default function ProfilePage() {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [editOpen, setEditOpen] = useState(false);
+  const [phoneOpen, setPhoneOpen] = useState(false);
+
+  const loadProfile = useCallback(async () => {
+    if (!user) return;
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("user_id, display_name, bio, location, age, interests, avatar_url, phone_number, phone_verified, id_verified, verification_badge")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (error) {
+      toast.error("Failed to load profile");
+    } else {
+      setProfile(data);
+    }
+    setLoading(false);
+  }, [user]);
+
+  useEffect(() => {
+    loadProfile();
+  }, [loadProfile]);
 
   const handleSignOut = async () => {
     await signOut();
     navigate("/auth");
   };
+
+  if (loading || !profile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  const isVerified = !!(profile.phone_verified || profile.verification_badge);
 
   return (
     <div className="min-h-screen pb-24 bg-background">
@@ -38,25 +87,31 @@ export default function ProfilePage() {
         <div className="px-4">
           <div className="relative -mt-16 flex items-end gap-4">
             <div className="relative">
-              <img
-                src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&h=200&fit=crop&crop=face"
-                alt="Profile"
-                className="h-24 w-24 rounded-2xl border-4 border-card object-cover shadow-elevated"
-              />
-              <button className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-card">
-                <Camera className="h-3.5 w-3.5" />
-              </button>
+              {profile.avatar_url ? (
+                <img
+                  src={profile.avatar_url}
+                  alt={profile.display_name ?? "Profile"}
+                  className="h-24 w-24 rounded-2xl border-4 border-card object-cover shadow-elevated"
+                />
+              ) : (
+                <div className="h-24 w-24 rounded-2xl border-4 border-card bg-muted flex items-center justify-center text-3xl shadow-elevated">
+                  {(profile.display_name ?? "?").charAt(0).toUpperCase()}
+                </div>
+              )}
             </div>
-            <div className="pb-1 flex-1">
+            <div className="pb-1 flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <h1 className="font-heading text-xl font-bold">{user?.user_metadata?.full_name || "Jordan Lee"}</h1>
-                <Shield className="h-4 w-4 text-accent" />
+                <h1 className="font-heading text-xl font-bold truncate">
+                  {profile.display_name || "Unnamed"}
+                </h1>
+                {isVerified && <Shield className="h-4 w-4 text-accent shrink-0" />}
               </div>
               <p className="text-sm text-muted-foreground flex items-center gap-1">
-                <MapPin className="h-3 w-3" /> San Francisco, CA
+                <MapPin className="h-3 w-3" /> {profile.location || "Add location"}
+                {profile.age && <span className="ml-1">· {profile.age}</span>}
               </p>
             </div>
-            <Button variant="outline" size="sm" className="rounded-xl gap-1">
+            <Button variant="outline" size="sm" className="rounded-xl gap-1" onClick={() => setEditOpen(true)}>
               <Edit className="h-3 w-3" /> Edit
             </Button>
           </div>
@@ -67,9 +122,9 @@ export default function ProfilePage() {
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3">
           {[
-            { label: "Trips", value: "12" },
-            { label: "Matches", value: "47" },
-            { label: "Rating", value: "4.8", icon: Star },
+            { label: "Trips", value: "0" },
+            { label: "Matches", value: "0" },
+            { label: "Rating", value: "—", icon: Star },
           ].map(stat => (
             <div key={stat.label} className="rounded-2xl bg-card p-3 text-center shadow-card">
               <div className="flex items-center justify-center gap-1">
@@ -84,9 +139,8 @@ export default function ProfilePage() {
         {/* Bio */}
         <div className="rounded-2xl bg-card p-4 shadow-card space-y-2">
           <h2 className="font-heading text-sm font-semibold">About</h2>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            Adventure enthusiast and amateur photographer. Love meeting people from different cultures
-            and sharing travel stories. Currently planning trips to Southeast Asia! 🌏
+          <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
+            {profile.bio || "No bio yet. Tap Edit to add one."}
           </p>
         </div>
 
@@ -94,9 +148,13 @@ export default function ProfilePage() {
         <div className="space-y-2">
           <h2 className="font-heading text-sm font-semibold">Interests</h2>
           <div className="flex flex-wrap gap-2">
-            {INTERESTS.map(interest => (
-              <Badge key={interest} variant="secondary" className="rounded-full px-3 py-1">{interest}</Badge>
-            ))}
+            {(profile.interests && profile.interests.length > 0) ? (
+              profile.interests.map(interest => (
+                <Badge key={interest} variant="secondary" className="rounded-full px-3 py-1">{interest}</Badge>
+              ))
+            ) : (
+              <p className="text-sm text-muted-foreground">No interests added yet.</p>
+            )}
           </div>
         </div>
 
@@ -118,29 +176,47 @@ export default function ProfilePage() {
         </div>
 
         {/* Reviews */}
-        {user && <ReviewsSection userId={user.id} canReview={false} />}
+        <ReviewsSection userId={profile.user_id} canReview={false} />
 
         {/* Verification */}
         <div className="rounded-2xl bg-card p-4 shadow-card space-y-3">
           <h2 className="font-heading text-sm font-semibold">Verification Status</h2>
           <div className="space-y-2">
-            {[
-              { label: "Email verified", done: true, icon: "✉️" },
-              { label: "Phone verified", done: true, icon: "📱" },
-              { label: "ID verified", done: false, icon: "🪪" },
-            ].map(item => (
-              <div key={item.label} className="flex items-center justify-between text-sm py-1">
-                <span className="flex items-center gap-2">
-                  <span>{item.icon}</span>
-                  <span className={item.done ? "text-foreground" : "text-muted-foreground"}>{item.label}</span>
+            <div className="flex items-center justify-between text-sm py-1">
+              <span className="flex items-center gap-2">
+                <span>✉️</span>
+                <span className="text-foreground">Email verified</span>
+              </span>
+              <Shield className="h-4 w-4 text-accent" />
+            </div>
+            <div className="flex items-center justify-between text-sm py-1">
+              <span className="flex items-center gap-2">
+                <span>📱</span>
+                <span className={profile.phone_verified ? "text-foreground" : "text-muted-foreground"}>
+                  {profile.phone_verified ? `Phone verified (${profile.phone_number})` : "Phone verified"}
                 </span>
-                {item.done ? (
-                  <Shield className="h-4 w-4 text-accent" />
-                ) : (
-                  <Button variant="outline" size="sm" className="h-7 text-xs rounded-lg">Verify</Button>
-                )}
-              </div>
-            ))}
+              </span>
+              {profile.phone_verified ? (
+                <Shield className="h-4 w-4 text-accent" />
+              ) : (
+                <Button variant="outline" size="sm" className="h-7 text-xs rounded-lg" onClick={() => setPhoneOpen(true)}>
+                  Verify
+                </Button>
+              )}
+            </div>
+            <div className="flex items-center justify-between text-sm py-1">
+              <span className="flex items-center gap-2">
+                <span>🪪</span>
+                <span className={profile.id_verified ? "text-foreground" : "text-muted-foreground"}>ID verified</span>
+              </span>
+              {profile.id_verified ? (
+                <Shield className="h-4 w-4 text-accent" />
+              ) : (
+                <Button variant="outline" size="sm" className="h-7 text-xs rounded-lg" disabled>
+                  Soon
+                </Button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -149,7 +225,7 @@ export default function ProfilePage() {
           {MENU_ITEMS.map(item => (
             <button
               key={item.label}
-              onClick={() => navigate(item.path)}
+              onClick={() => item.path !== "#" && navigate(item.path)}
               className="flex w-full items-center gap-3 px-4 py-3.5 hover:bg-secondary/50 transition-colors text-left"
             >
               <item.icon className="h-4 w-4 text-muted-foreground" />
@@ -164,6 +240,19 @@ export default function ProfilePage() {
           <LogOut className="h-4 w-4" /> Sign Out
         </Button>
       </motion.div>
+
+      <EditProfileDialog
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        profile={profile}
+        onSaved={loadProfile}
+      />
+      <PhoneVerificationDialog
+        open={phoneOpen}
+        onOpenChange={setPhoneOpen}
+        userId={profile.user_id}
+        onVerified={loadProfile}
+      />
     </div>
   );
 }
