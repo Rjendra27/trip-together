@@ -274,6 +274,39 @@ export type Database = {
         }
         Relationships: []
       }
+      reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          rating: number
+          reviewed_user_id: string
+          reviewer_id: string
+          trip_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating: number
+          reviewed_user_id: string
+          reviewer_id: string
+          trip_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating?: number
+          reviewed_user_id?: string
+          reviewer_id?: string
+          trip_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       trips: {
         Row: {
           budget_max: number | null
