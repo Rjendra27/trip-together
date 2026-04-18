@@ -14,7 +14,11 @@ import ChatPage from "./pages/ChatPage";
 import ProfilePage from "./pages/ProfilePage";
 import AuthPage from "./pages/AuthPage";
 import NotificationsPage from "./pages/NotificationsPage";
-import AdminPage from "./pages/AdminPage";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminTrips from "./pages/admin/AdminTrips";
+import AdminReports from "./pages/admin/AdminReports";
+import AdminBroadcasts from "./pages/admin/AdminBroadcasts";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,7 +39,11 @@ const App = () => (
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/notifications" element={<NotificationsPage />} />
-            <Route path="/admin" element={<AdminPage />} />
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/users" element={<AdminUsers />} />
+            <Route path="/admin/trips" element={<AdminTrips />} />
+            <Route path="/admin/reports" element={<AdminReports />} />
+            <Route path="/admin/broadcasts" element={<AdminBroadcasts />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <BottomNav />
