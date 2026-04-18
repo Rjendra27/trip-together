@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AlertTriangle, Phone, MapPin, X, Shield } from "lucide-react";
+import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
 export default function SOSButton() {
   const [showPanel, setShowPanel] = useState(false);
   const { toast } = useToast();
+  const { pathname } = useLocation();
+  if (pathname.startsWith("/admin") || pathname.startsWith("/auth")) return null;
 
   const handleSOS = () => {
     toast({
