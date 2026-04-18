@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { MapPin, Settings, Shield, Star, Edit, LogOut, Bell, ChevronRight, Lock, CreditCard, Loader2 } from "lucide-react";
+import { MapPin, Settings, Shield, Star, Edit, LogOut, Bell, ChevronRight, Lock, CreditCard, Loader2, ShieldCheck } from "lucide-react";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
@@ -41,6 +42,7 @@ interface Profile {
 export default function ProfilePage() {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { isAdmin } = useIsAdmin();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [editOpen, setEditOpen] = useState(false);
@@ -219,6 +221,21 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
+
+        {/* Admin link (only for admins) */}
+        {isAdmin && (
+          <button
+            onClick={() => navigate("/admin")}
+            className="w-full rounded-2xl bg-gradient-primary text-primary-foreground shadow-elevated px-4 py-3.5 flex items-center gap-3 hover:opacity-90 transition-opacity"
+          >
+            <ShieldCheck className="h-5 w-5" />
+            <div className="flex-1 text-left">
+              <p className="text-sm font-semibold">Admin Dashboard</p>
+              <p className="text-xs opacity-90">Manage users, trips & reports</p>
+            </div>
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        )}
 
         {/* Menu */}
         <div className="rounded-2xl bg-card shadow-card overflow-hidden divide-y divide-border">
