@@ -195,6 +195,7 @@ export type Database = {
           id: string
           id_verified: boolean | null
           interests: string[] | null
+          is_blocked: boolean | null
           last_seen: string | null
           location: string | null
           online_status: boolean | null
@@ -215,6 +216,7 @@ export type Database = {
           id?: string
           id_verified?: boolean | null
           interests?: string[] | null
+          is_blocked?: boolean | null
           last_seen?: string | null
           location?: string | null
           online_status?: boolean | null
@@ -235,6 +237,7 @@ export type Database = {
           id?: string
           id_verified?: boolean | null
           interests?: string[] | null
+          is_blocked?: boolean | null
           last_seen?: string | null
           location?: string | null
           online_status?: boolean | null
