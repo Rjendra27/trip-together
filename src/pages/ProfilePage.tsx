@@ -41,7 +41,7 @@ interface Profile {
 
 export default function ProfilePage() {
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user, loading: authLoading, signOut } = useAuth();
   const { isAdmin } = useIsAdmin();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -49,7 +49,11 @@ export default function ProfilePage() {
   const [phoneOpen, setPhoneOpen] = useState(false);
 
   const loadProfile = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
     const { data, error } = await supabase
       .from("profiles")
       .select("user_id, display_name, bio, location, age, interests, avatar_url, phone_number, phone_verified, id_verified, verification_badge")
@@ -57,6 +61,18 @@ export default function ProfilePage() {
       .maybeSingle();
     if (error) {
       toast.error("Failed to load profile");
+    } else if (!data) {
+      // Create a profile row if missing (e.g. account predates the trigger)
+      const { data: created, error: insertErr } = await supabase
+        .from("profiles")
+        .insert({ user_id: user.id, display_name: user.email })
+        .select("user_id, display_name, bio, location, age, interests, avatar_url, phone_number, phone_verified, id_verified, verification_badge")
+        .maybeSingle();
+      if (insertErr) {
+        toast.error("Failed to create profile");
+      } else {
+        setProfile(created);
+      }
     } else {
       setProfile(data);
     }
@@ -64,15 +80,20 @@ export default function ProfilePage() {
   }, [user]);
 
   useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
     loadProfile();
-  }, [loadProfile]);
+  }, [authLoading, user, loadProfile, navigate]);
 
   const handleSignOut = async () => {
     await signOut();
     navigate("/auth");
   };
 
-  if (loading || !profile) {
+  if (authLoading || loading || !profile) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
