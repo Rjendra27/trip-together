@@ -46,6 +46,25 @@ export default function AuthPage() {
     }
   };
 
+  const handleForgotPassword = async () => {
+    if (!email) {
+      toast({ title: "Enter your email", description: "Type your email above first, then tap Forgot password.", variant: "destructive" });
+      return;
+    }
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      toast({ title: "Check your email", description: "We sent you a password reset link." });
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
@@ -109,6 +128,18 @@ export default function AuthPage() {
               </button>
             </div>
           </div>
+          {isLogin && (
+            <div className="flex justify-end -mt-1">
+              <button
+                type="button"
+                onClick={handleForgotPassword}
+                className="text-xs text-primary font-medium"
+                disabled={loading}
+              >
+                Forgot password?
+              </button>
+            </div>
+          )}
           <Button type="submit" variant="hero" className="w-full rounded-xl h-12 mt-2" disabled={loading}>
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : isLogin ? "Sign In" : "Create Account"}
           </Button>
