@@ -199,8 +199,6 @@ export type Database = {
           last_seen: string | null
           location: string | null
           online_status: boolean | null
-          phone_number: string | null
-          phone_verified: boolean | null
           travel_style: string | null
           updated_at: string
           user_id: string
@@ -220,8 +218,6 @@ export type Database = {
           last_seen?: string | null
           location?: string | null
           online_status?: boolean | null
-          phone_number?: string | null
-          phone_verified?: boolean | null
           travel_style?: string | null
           updated_at?: string
           user_id: string
@@ -241,8 +237,6 @@ export type Database = {
           last_seen?: string | null
           location?: string | null
           online_status?: boolean | null
-          phone_number?: string | null
-          phone_verified?: boolean | null
           travel_style?: string | null
           updated_at?: string
           user_id?: string
@@ -370,6 +364,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_contacts: {
+        Row: {
+          created_at: string
+          phone_number: string | null
+          phone_verified: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          phone_number?: string | null
+          phone_verified?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          phone_number?: string | null
+          phone_verified?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -393,6 +411,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_notify_user: { Args: { _target_user_id: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
