@@ -79,9 +79,15 @@ export default function PhoneVerificationDialog({ open, onOpenChange, userId, on
       });
       if (error) throw error;
 
+      // Phone number lives in the private user_contacts table
+      const { error: contactErr } = await supabase
+        .from("user_contacts")
+        .upsert({ user_id: userId, phone_number: phone, phone_verified: true });
+      if (contactErr) throw contactErr;
+
       const { error: upErr } = await supabase
         .from("profiles")
-        .update({ phone_number: phone, phone_verified: true, verification_badge: true })
+        .update({ verification_badge: true })
         .eq("user_id", userId);
       if (upErr) throw upErr;
 

@@ -39,6 +39,11 @@ interface Profile {
   verification_badge: boolean | null;
 }
 
+interface UserContact {
+  phone_number: string | null;
+  phone_verified: boolean | null;
+}
+
 export default function ProfilePage() {
   const navigate = useNavigate();
   const { user, loading: authLoading, signOut } = useAuth();
@@ -54,11 +59,20 @@ export default function ProfilePage() {
       return;
     }
     setLoading(true);
+    const profileCols = "user_id, display_name, bio, location, age, interests, avatar_url, id_verified, verification_badge";
     const { data, error } = await supabase
       .from("profiles")
-      .select("user_id, display_name, bio, location, age, interests, avatar_url, phone_number, phone_verified, id_verified, verification_badge")
+      .select(profileCols)
       .eq("user_id", user.id)
       .maybeSingle();
+
+    // Fetch private contact info from the user_contacts table
+    const { data: contact } = await supabase
+      .from("user_contacts")
+      .select("phone_number, phone_verified")
+      .eq("user_id", user.id)
+      .maybeSingle<UserContact>();
+
     if (error) {
       toast.error("Failed to load profile");
     } else if (!data) {
@@ -66,15 +80,23 @@ export default function ProfilePage() {
       const { data: created, error: insertErr } = await supabase
         .from("profiles")
         .insert({ user_id: user.id, display_name: user.email })
-        .select("user_id, display_name, bio, location, age, interests, avatar_url, phone_number, phone_verified, id_verified, verification_badge")
+        .select(profileCols)
         .maybeSingle();
       if (insertErr) {
         toast.error("Failed to create profile");
-      } else {
-        setProfile(created);
+      } else if (created) {
+        setProfile({
+          ...created,
+          phone_number: contact?.phone_number ?? null,
+          phone_verified: contact?.phone_verified ?? null,
+        });
       }
     } else {
-      setProfile(data);
+      setProfile({
+        ...data,
+        phone_number: contact?.phone_number ?? null,
+        phone_verified: contact?.phone_verified ?? null,
+      });
     }
     setLoading(false);
   }, [user]);
