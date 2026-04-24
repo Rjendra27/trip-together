@@ -126,7 +126,9 @@ export type Database = {
           content: string
           conversation_id: string
           created_at: string
+          flagged: boolean
           id: string
+          moderation_status: string
           read: boolean | null
           receiver_id: string
           sender_id: string
@@ -135,7 +137,9 @@ export type Database = {
           content: string
           conversation_id: string
           created_at?: string
+          flagged?: boolean
           id?: string
+          moderation_status?: string
           read?: boolean | null
           receiver_id: string
           sender_id: string
@@ -144,7 +148,9 @@ export type Database = {
           content?: string
           conversation_id?: string
           created_at?: string
+          flagged?: boolean
           id?: string
+          moderation_status?: string
           read?: boolean | null
           receiver_id?: string
           sender_id?: string
@@ -250,6 +256,7 @@ export type Database = {
           description: string | null
           id: string
           reason: string
+          reported_trip_id: string | null
           reported_user_id: string
           reporter_id: string
           status: Database["public"]["Enums"]["report_status"] | null
@@ -259,6 +266,7 @@ export type Database = {
           description?: string | null
           id?: string
           reason: string
+          reported_trip_id?: string | null
           reported_user_id: string
           reporter_id: string
           status?: Database["public"]["Enums"]["report_status"] | null
@@ -268,6 +276,7 @@ export type Database = {
           description?: string | null
           id?: string
           reason?: string
+          reported_trip_id?: string | null
           reported_user_id?: string
           reporter_id?: string
           status?: Database["public"]["Enums"]["report_status"] | null
