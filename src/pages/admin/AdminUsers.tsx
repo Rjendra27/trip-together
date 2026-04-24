@@ -55,13 +55,11 @@ export default function AdminUsers() {
   };
 
   const deleteUser = async (u: any) => {
-    if (!confirm(`Delete ${u.display_name || "this user"}'s public profile and related trips?`)) return;
-    const [tripsRes, profileRes] = await Promise.all([
-      supabase.from("trips").delete().eq("user_id", u.user_id),
-      supabase.from("profiles").delete().eq("user_id", u.user_id),
-    ]);
-    if (tripsRes.error || profileRes.error) return toast.error(tripsRes.error?.message || profileRes.error?.message);
-    toast.success("User profile deleted");
+    if (!confirm(`Permanently delete ${u.display_name || "this user"} and all related account data?`)) return;
+    const { error } = await supabase.functions.invoke("admin-delete-user", { body: { userId: u.user_id } });
+    if (error) return toast.error(error.message);
+    toast.success("User deleted");
+    load();
   };
 
   const filtered = useMemo(
