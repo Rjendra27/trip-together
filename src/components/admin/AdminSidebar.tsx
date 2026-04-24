@@ -18,7 +18,7 @@ const items = [
   { title: "Users", url: "/admin/users", icon: Users },
   { title: "Trips", url: "/admin/trips", icon: Plane },
   { title: "Reports", url: "/admin/reports", icon: Flag },
-  { title: "Settings", url: "/admin/broadcasts", icon: Bell },
+  { title: "Settings", url: "/admin/settings", icon: Bell },
 ];
 
 export function AdminSidebar() {
