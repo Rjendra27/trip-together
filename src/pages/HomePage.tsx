@@ -177,7 +177,7 @@ export default function HomePage() {
             filteredTrips.map((trip) => {
               const profile = profiles[trip.user_id];
               const spotsLeft = Math.max(0, (trip.spots_needed ?? 1) - (trip.spots_filled ?? 0));
-              const budget = trip.budget_min != null && trip.budget_max != null ? `$${trip.budget_min}-${trip.budget_max}` : "Flexible";
+              const budget = trip.budget_min != null && trip.budget_max != null ? `₹${trip.budget_min.toLocaleString("en-IN")}-${trip.budget_max.toLocaleString("en-IN")}` : "Flexible";
               return (
                 <TripCard
                   key={trip.id}
