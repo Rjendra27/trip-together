@@ -98,6 +98,10 @@ export default function EditProfileDialog({ open, onOpenChange, profile, onSaved
     setInterests(prev => prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i]);
   };
 
+  const toggleLanguage = (l: string) => {
+    setLanguages(prev => prev.includes(l) ? prev.filter(x => x !== l) : [...prev, l]);
+  };
+
   const handleSave = async () => {
     const parsed = schema.safeParse({
       display_name: displayName,
@@ -119,6 +123,9 @@ export default function EditProfileDialog({ open, onOpenChange, profile, onSaved
           location: parsed.data.location ?? null,
           age: parsed.data.age,
           interests,
+          languages,
+          preferred_group_size: groupSize || null,
+          budget_preference: budget || null,
           avatar_url: avatarUrl,
         })
         .eq("user_id", profile.user_id);
