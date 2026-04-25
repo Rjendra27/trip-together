@@ -48,6 +48,9 @@ export default function EditProfileDialog({ open, onOpenChange, profile, onSaved
   const [location, setLocation] = useState("");
   const [age, setAge] = useState<string>("");
   const [interests, setInterests] = useState<string[]>([]);
+  const [languages, setLanguages] = useState<string[]>([]);
+  const [groupSize, setGroupSize] = useState<string>("");
+  const [budget, setBudget] = useState<string>("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -60,6 +63,9 @@ export default function EditProfileDialog({ open, onOpenChange, profile, onSaved
       setLocation(profile.location ?? "");
       setAge(profile.age?.toString() ?? "");
       setInterests(profile.interests ?? []);
+      setLanguages(profile.languages ?? []);
+      setGroupSize(profile.preferred_group_size ?? "");
+      setBudget(profile.budget_preference ?? "");
       setAvatarUrl(profile.avatar_url);
     }
   }, [open, profile]);
