@@ -1,9 +1,14 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { MapPin, Settings, Shield, Star, Edit, LogOut, Bell, ChevronRight, Lock, CreditCard, Loader2, ShieldCheck } from "lucide-react";
+import {
+  MapPin, Settings, Shield, Star, Edit, LogOut, Bell, ChevronRight, Lock,
+  Loader2, ShieldCheck, Heart, CheckCircle2, Globe, Users, Compass, Wallet,
+  PhoneCall, Calendar, Sparkles, BadgeCheck, CircleDot
+} from "lucide-react";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,16 +17,9 @@ import EditProfileDialog from "@/components/EditProfileDialog";
 import PhoneVerificationDialog from "@/components/PhoneVerificationDialog";
 import { toast } from "sonner";
 
-const PAST_TRIPS = [
-  { destination: "Nepal", date: "Mar 2024", image: "https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=200&h=200&fit=crop" },
-  { destination: "Thailand", date: "Jan 2024", image: "https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=200&h=200&fit=crop" },
-  { destination: "Iceland", date: "Sep 2023", image: "https://images.unsplash.com/photo-1520769945061-0a448c463865?w=200&h=200&fit=crop" },
-];
-
 const MENU_ITEMS = [
   { icon: Bell, label: "Notifications", path: "/notifications" },
   { icon: Lock, label: "Privacy & Safety", path: "#" },
-  { icon: CreditCard, label: "Premium", path: "#" },
   { icon: Settings, label: "Settings", path: "#" },
 ];
 
@@ -37,11 +35,26 @@ interface Profile {
   phone_verified: boolean | null;
   id_verified: boolean | null;
   verification_badge: boolean | null;
+  is_available: boolean | null;
+  languages: string[] | null;
+  preferred_group_size: string | null;
+  budget_preference: string | null;
+  travel_style: string | null;
+  created_at: string | null;
 }
 
 interface UserContact {
   phone_number: string | null;
   phone_verified: boolean | null;
+}
+
+interface TripRow {
+  id: string;
+  destination: string;
+  start_date: string;
+  end_date: string;
+  completed: boolean | null;
+  user_id: string;
 }
 
 export default function ProfilePage() {
@@ -53,20 +66,28 @@ export default function ProfilePage() {
   const [editOpen, setEditOpen] = useState(false);
   const [phoneOpen, setPhoneOpen] = useState(false);
 
+  // Stats & trip data
+  const [myTrips, setMyTrips] = useState<TripRow[]>([]);
+  const [wishlist, setWishlist] = useState<TripRow[]>([]);
+  const [matchCount, setMatchCount] = useState(0);
+  const [reviewCount, setReviewCount] = useState(0);
+  const [emergencyCount, setEmergencyCount] = useState(0);
+  const [mutualInterests, setMutualInterests] = useState<string[]>([]);
+  const [availabilityBusy, setAvailabilityBusy] = useState(false);
+
   const loadProfile = useCallback(async () => {
     if (!user) {
       setLoading(false);
       return;
     }
     setLoading(true);
-    const profileCols = "user_id, display_name, bio, location, age, interests, avatar_url, id_verified, verification_badge";
+    const profileCols = "user_id, display_name, bio, location, age, interests, avatar_url, id_verified, verification_badge, is_available, languages, preferred_group_size, budget_preference, travel_style, created_at";
     const { data, error } = await supabase
       .from("profiles")
       .select(profileCols)
       .eq("user_id", user.id)
       .maybeSingle();
 
-    // Fetch private contact info from the user_contacts table
     const { data: contact } = await supabase
       .from("user_contacts")
       .select("phone_number, phone_verified")
@@ -76,7 +97,6 @@ export default function ProfilePage() {
     if (error) {
       toast.error("Failed to load profile");
     } else if (!data) {
-      // Create a profile row if missing (e.g. account predates the trigger)
       const { data: created, error: insertErr } = await supabase
         .from("profiles")
         .insert({ user_id: user.id, display_name: user.email })
@@ -86,20 +106,97 @@ export default function ProfilePage() {
         toast.error("Failed to create profile");
       } else if (created) {
         setProfile({
-          ...created,
+          ...(created as any),
           phone_number: contact?.phone_number ?? null,
           phone_verified: contact?.phone_verified ?? null,
         });
       }
     } else {
       setProfile({
-        ...data,
+        ...(data as any),
         phone_number: contact?.phone_number ?? null,
         phone_verified: contact?.phone_verified ?? null,
       });
     }
     setLoading(false);
   }, [user]);
+
+  const loadStatsAndTrips = useCallback(async () => {
+    if (!user) return;
+
+    // Trips owned by the user
+    const { data: trips } = await supabase
+      .from("trips")
+      .select("id, destination, start_date, end_date, completed, user_id")
+      .eq("user_id", user.id)
+      .order("start_date", { ascending: false });
+    setMyTrips((trips as TripRow[]) ?? []);
+
+    // Bookmarked / wishlist trips
+    const { data: bookmarks } = await supabase
+      .from("bookmarks")
+      .select("trip_id")
+      .eq("user_id", user.id);
+    const tripIds = (bookmarks ?? []).map((b: any) => b.trip_id);
+    if (tripIds.length) {
+      const { data: bmTrips } = await supabase
+        .from("trips")
+        .select("id, destination, start_date, end_date, completed, user_id")
+        .in("id", tripIds);
+      setWishlist((bmTrips as TripRow[]) ?? []);
+    } else {
+      setWishlist([]);
+    }
+
+    // Match count (accepted matches involving this user)
+    const { count: mCount } = await supabase
+      .from("matches")
+      .select("id", { count: "exact", head: true })
+      .or(`user_id.eq.${user.id},matched_user_id.eq.${user.id}`)
+      .eq("status", "accepted");
+    setMatchCount(mCount ?? 0);
+
+    // Reviews received
+    const { count: rCount } = await supabase
+      .from("reviews")
+      .select("id", { count: "exact", head: true })
+      .eq("reviewed_user_id", user.id);
+    setReviewCount(rCount ?? 0);
+
+    // Emergency contacts present?
+    const { count: eCount } = await supabase
+      .from("emergency_contacts")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id);
+    setEmergencyCount(eCount ?? 0);
+  }, [user]);
+
+  const loadMutualInterests = useCallback(async () => {
+    if (!user || !profile?.interests?.length) {
+      setMutualInterests([]);
+      return;
+    }
+    // Find accepted matches and intersect interests
+    const { data: matches } = await supabase
+      .from("matches")
+      .select("user_id, matched_user_id")
+      .or(`user_id.eq.${user.id},matched_user_id.eq.${user.id}`)
+      .eq("status", "accepted");
+    const peerIds = (matches ?? [])
+      .map((m: any) => (m.user_id === user.id ? m.matched_user_id : m.user_id));
+    if (!peerIds.length) {
+      setMutualInterests([]);
+      return;
+    }
+    const { data: peers } = await supabase
+      .from("profiles")
+      .select("interests")
+      .in("user_id", peerIds);
+    const peerInterests = new Set<string>();
+    (peers ?? []).forEach((p: any) => (p.interests ?? []).forEach((i: string) => peerInterests.add(i)));
+    const mine = new Set(profile.interests ?? []);
+    setMutualInterests([...mine].filter(i => peerInterests.has(i)));
+  }, [user, profile?.interests]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -110,9 +207,45 @@ export default function ProfilePage() {
     loadProfile();
   }, [authLoading, user, loadProfile, navigate]);
 
+  useEffect(() => {
+    if (user) loadStatsAndTrips();
+  }, [user, loadStatsAndTrips]);
+
+  useEffect(() => {
+    loadMutualInterests();
+  }, [loadMutualInterests]);
+
   const handleSignOut = async () => {
     await signOut();
     navigate("/auth");
+  };
+
+  const toggleAvailability = async (next: boolean) => {
+    if (!profile) return;
+    setAvailabilityBusy(true);
+    const prev = profile.is_available;
+    setProfile({ ...profile, is_available: next });
+    const { error } = await supabase
+      .from("profiles")
+      .update({ is_available: next })
+      .eq("user_id", profile.user_id);
+    setAvailabilityBusy(false);
+    if (error) {
+      setProfile({ ...profile, is_available: prev });
+      toast.error("Could not update availability");
+    } else {
+      toast.success(next ? "You're available to travel" : "Marked as busy");
+    }
+  };
+
+  const markTripCompleted = async (tripId: string) => {
+    const { error } = await supabase.from("trips").update({ completed: true }).eq("id", tripId);
+    if (error) {
+      toast.error("Could not mark complete");
+    } else {
+      toast.success("Trip marked completed");
+      loadStatsAndTrips();
+    }
   };
 
   if (authLoading || loading || !profile) {
@@ -123,7 +256,31 @@ export default function ProfilePage() {
     );
   }
 
+  const today = new Date().toISOString().slice(0, 10);
+  const upcomingTrips = myTrips.filter(t => !t.completed && t.start_date > today);
+  const currentTrips = myTrips.filter(t => !t.completed && t.start_date <= today && t.end_date >= today);
+  const pastTrips = myTrips.filter(t => t.completed || t.end_date < today);
+
   const isVerified = !!(profile.phone_verified || profile.verification_badge);
+  const profileComplete =
+    !!profile.display_name && !!profile.bio && !!profile.location && (profile.interests?.length ?? 0) > 0;
+  const trustedTraveler = isVerified && profileComplete && reviewCount >= 3;
+
+  const memberSince = profile.created_at
+    ? new Date(profile.created_at).toLocaleDateString(undefined, { month: "long", year: "numeric" })
+    : "—";
+
+  const stats = [
+    { label: "Joined", value: myTrips.length.toString(), icon: Compass },
+    { label: "Completed", value: pastTrips.length.toString(), icon: CheckCircle2 },
+    { label: "Matches", value: matchCount.toString(), icon: Users },
+    { label: "Reviews", value: reviewCount.toString(), icon: Star },
+  ];
+
+  const formatRange = (s: string, e: string) => {
+    const opts: Intl.DateTimeFormatOptions = { month: "short", day: "numeric" };
+    return `${new Date(s).toLocaleDateString(undefined, opts)} – ${new Date(e).toLocaleDateString(undefined, opts)}`;
+  };
 
   return (
     <div className="min-h-screen pb-24 bg-background">
@@ -143,6 +300,14 @@ export default function ProfilePage() {
                   {(profile.display_name ?? "?").charAt(0).toUpperCase()}
                 </div>
               )}
+              <span
+                className={`absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-card ${
+                  profile.is_available ? "bg-emerald-500" : "bg-muted-foreground"
+                }`}
+                title={profile.is_available ? "Available" : "Busy"}
+              >
+                <CircleDot className="h-2.5 w-2.5 text-primary-foreground" />
+              </span>
             </div>
             <div className="pb-1 flex-1 min-w-0">
               <div className="flex items-center gap-2">
@@ -155,6 +320,9 @@ export default function ProfilePage() {
                 <MapPin className="h-3 w-3" /> {profile.location || "Add location"}
                 {profile.age && <span className="ml-1">· {profile.age}</span>}
               </p>
+              <p className="text-[11px] text-muted-foreground flex items-center gap-1 mt-0.5">
+                <Calendar className="h-3 w-3" /> Member since {memberSince}
+              </p>
             </div>
             <Button variant="outline" size="sm" className="rounded-xl gap-1" onClick={() => setEditOpen(true)}>
               <Edit className="h-3 w-3" /> Edit
@@ -164,21 +332,36 @@ export default function ProfilePage() {
       </div>
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="px-4 mt-6 space-y-6">
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-3">
-          {[
-            { label: "Trips", value: "0" },
-            { label: "Matches", value: "0" },
-            { label: "Rating", value: "—", icon: Star },
-          ].map(stat => (
-            <div key={stat.label} className="rounded-2xl bg-card p-3 text-center shadow-card">
-              <div className="flex items-center justify-center gap-1">
-                <span className="font-heading text-xl font-bold">{stat.value}</span>
-                {stat.icon && <stat.icon className="h-4 w-4 text-accent fill-accent" />}
+        {/* Travel Stats */}
+        <div className="rounded-2xl bg-card p-4 shadow-card">
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles className="h-4 w-4 text-accent" />
+            <h2 className="font-heading text-sm font-semibold">Travel Stats</h2>
+          </div>
+          <div className="grid grid-cols-4 gap-2">
+            {stats.map(stat => (
+              <div key={stat.label} className="rounded-xl bg-secondary/40 p-2.5 text-center">
+                <stat.icon className="h-4 w-4 mx-auto text-muted-foreground mb-1" />
+                <div className="font-heading text-lg font-bold leading-none">{stat.value}</div>
+                <div className="text-[10px] text-muted-foreground mt-1">{stat.label}</div>
               </div>
-              <span className="text-xs text-muted-foreground">{stat.label}</span>
-            </div>
-          ))}
+            ))}
+          </div>
+        </div>
+
+        {/* Availability toggle */}
+        <div className="rounded-2xl bg-card p-4 shadow-card flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-semibold">Availability</h3>
+            <p className="text-xs text-muted-foreground">
+              {profile.is_available ? "Available to travel" : "Busy now"}
+            </p>
+          </div>
+          <Switch
+            checked={!!profile.is_available}
+            disabled={availabilityBusy}
+            onCheckedChange={toggleAvailability}
+          />
         </div>
 
         {/* Bio */}
@@ -203,65 +386,124 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Past trips */}
+        {/* Mutual interests */}
+        {mutualInterests.length > 0 && (
+          <div className="rounded-2xl bg-card p-4 shadow-card space-y-2">
+            <h2 className="font-heading text-sm font-semibold flex items-center gap-2">
+              <Users className="h-4 w-4 text-accent" /> Mutual Interests with Matches
+            </h2>
+            <div className="flex flex-wrap gap-2">
+              {mutualInterests.map(i => (
+                <Badge key={i} className="rounded-full px-3 py-1 bg-accent/10 text-accent border-accent/20" variant="outline">{i}</Badge>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Travel preferences */}
+        <div className="rounded-2xl bg-card p-4 shadow-card space-y-3">
+          <h2 className="font-heading text-sm font-semibold flex items-center gap-2">
+            <Compass className="h-4 w-4 text-accent" /> Travel Preferences
+          </h2>
+          <div className="grid grid-cols-2 gap-2">
+            <PrefRow icon={Wallet} label="Budget" value={profile.budget_preference || "—"} />
+            <PrefRow icon={Compass} label="Style" value={profile.travel_style || "—"} />
+            <PrefRow icon={Users} label="Group size" value={profile.preferred_group_size || "—"} />
+            <PrefRow icon={Globe} label="Languages" value={(profile.languages?.length ? profile.languages.join(", ") : "—")} />
+          </div>
+        </div>
+
+        {/* Upcoming Trips */}
+        {upcomingTrips.length > 0 && (
+          <TripList title="Upcoming Trips" trips={upcomingTrips} formatRange={formatRange} />
+        )}
+
+        {/* Current Trips */}
+        {currentTrips.length > 0 && (
+          <TripList
+            title="Current Trips"
+            trips={currentTrips}
+            formatRange={formatRange}
+            actionLabel="Mark completed"
+            onAction={markTripCompleted}
+          />
+        )}
+
+        {/* Past / completed trips */}
         <div className="space-y-3">
           <h2 className="font-heading text-sm font-semibold">Past Trips</h2>
-          <div className="grid grid-cols-3 gap-2">
-            {PAST_TRIPS.map(trip => (
-              <div key={trip.destination} className="relative overflow-hidden rounded-xl">
-                <img src={trip.image} alt={trip.destination} className="h-28 w-full object-cover" loading="lazy" />
-                <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 to-transparent" />
-                <div className="absolute bottom-2 left-2">
-                  <p className="text-xs font-semibold text-primary-foreground">{trip.destination}</p>
-                  <p className="text-[10px] text-primary-foreground/70">{trip.date}</p>
+          {pastTrips.length === 0 ? (
+            <p className="text-sm text-muted-foreground rounded-2xl bg-card p-4 shadow-card">
+              No completed trips yet.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {pastTrips.map(t => (
+                <div key={t.id} className="rounded-2xl bg-card p-3 shadow-card flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-xl bg-secondary flex items-center justify-center">
+                    <CheckCircle2 className="h-5 w-5 text-accent" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold truncate">{t.destination}</p>
+                    <p className="text-xs text-muted-foreground">{formatRange(t.start_date, t.end_date)}</p>
+                  </div>
+                  <Badge variant="outline" className="text-[10px]">Completed</Badge>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Wishlist */}
+        <div className="space-y-3">
+          <h2 className="font-heading text-sm font-semibold flex items-center gap-2">
+            <Heart className="h-4 w-4 text-accent" /> Wishlist
+          </h2>
+          {wishlist.length === 0 ? (
+            <p className="text-sm text-muted-foreground rounded-2xl bg-card p-4 shadow-card">
+              No saved trips yet. Bookmark trips to plan ahead.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {wishlist.map(t => (
+                <div key={t.id} className="rounded-2xl bg-card p-3 shadow-card flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-xl bg-secondary flex items-center justify-center">
+                    <Heart className="h-5 w-5 text-accent" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold truncate">{t.destination}</p>
+                    <p className="text-xs text-muted-foreground">{formatRange(t.start_date, t.end_date)}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Reviews */}
         <ReviewsSection userId={profile.user_id} canReview={false} />
 
-        {/* Verification */}
+        {/* Verification & trust badges */}
         <div className="rounded-2xl bg-card p-4 shadow-card space-y-3">
-          <h2 className="font-heading text-sm font-semibold">Verification Status</h2>
+          <h2 className="font-heading text-sm font-semibold flex items-center gap-2">
+            <BadgeCheck className="h-4 w-4 text-accent" /> Verification & Trust
+          </h2>
           <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm py-1">
-              <span className="flex items-center gap-2">
-                <span>✉️</span>
-                <span className="text-foreground">Email verified</span>
-              </span>
-              <Shield className="h-4 w-4 text-accent" />
-            </div>
-            <div className="flex items-center justify-between text-sm py-1">
-              <span className="flex items-center gap-2">
-                <span>📱</span>
-                <span className={profile.phone_verified ? "text-foreground" : "text-muted-foreground"}>
-                  {profile.phone_verified ? `Phone verified (${profile.phone_number})` : "Phone verified"}
-                </span>
-              </span>
-              {profile.phone_verified ? (
-                <Shield className="h-4 w-4 text-accent" />
-              ) : (
-                <Button variant="outline" size="sm" className="h-7 text-xs rounded-lg" onClick={() => setPhoneOpen(true)}>
-                  Verify
-                </Button>
-              )}
-            </div>
-            <div className="flex items-center justify-between text-sm py-1">
-              <span className="flex items-center gap-2">
-                <span>🪪</span>
-                <span className={profile.id_verified ? "text-foreground" : "text-muted-foreground"}>ID verified</span>
-              </span>
-              {profile.id_verified ? (
-                <Shield className="h-4 w-4 text-accent" />
-              ) : (
-                <Button variant="outline" size="sm" className="h-7 text-xs rounded-lg" disabled>
-                  Soon
-                </Button>
-              )}
-            </div>
+            <VerifyRow icon="✉️" label="Email verified" ok={true} />
+            <VerifyRow
+              icon="📱"
+              label={profile.phone_verified ? `Phone verified (${profile.phone_number})` : "Phone verified"}
+              ok={!!profile.phone_verified}
+              action={!profile.phone_verified ? <Button variant="outline" size="sm" className="h-7 text-xs rounded-lg" onClick={() => setPhoneOpen(true)}>Verify</Button> : undefined}
+            />
+            <VerifyRow icon="🪪" label="ID verified" ok={!!profile.id_verified} action={!profile.id_verified ? <Button variant="outline" size="sm" className="h-7 text-xs rounded-lg" disabled>Soon</Button> : undefined} />
+            <VerifyRow icon="🧑" label="Profile complete" ok={profileComplete} />
+            <VerifyRow icon="🛡️" label="Trusted traveler" ok={trustedTraveler} />
+            <VerifyRow
+              icon={<PhoneCall className="h-4 w-4" />}
+              label={emergencyCount > 0 ? `${emergencyCount} emergency contact${emergencyCount > 1 ? "s" : ""}` : "Emergency contact"}
+              ok={emergencyCount > 0}
+            />
           </div>
         </div>
 
@@ -304,7 +546,7 @@ export default function ProfilePage() {
       <EditProfileDialog
         open={editOpen}
         onOpenChange={setEditOpen}
-        profile={profile}
+        profile={profile as any}
         onSaved={loadProfile}
       />
       <PhoneVerificationDialog
@@ -313,6 +555,69 @@ export default function ProfilePage() {
         userId={profile.user_id}
         onVerified={loadProfile}
       />
+    </div>
+  );
+}
+
+function PrefRow({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
+  return (
+    <div className="rounded-xl bg-secondary/40 p-2.5">
+      <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+        <Icon className="h-3 w-3" /> {label}
+      </div>
+      <p className="text-sm font-medium mt-1 capitalize truncate">{value}</p>
+    </div>
+  );
+}
+
+function VerifyRow({
+  icon, label, ok, action,
+}: {
+  icon: React.ReactNode; label: string; ok: boolean; action?: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between text-sm py-1">
+      <span className="flex items-center gap-2">
+        <span className="w-5 text-center">{icon}</span>
+        <span className={ok ? "text-foreground" : "text-muted-foreground"}>{label}</span>
+      </span>
+      {action ?? (
+        ok ? <Shield className="h-4 w-4 text-accent" /> : <span className="text-xs text-muted-foreground">Pending</span>
+      )}
+    </div>
+  );
+}
+
+function TripList({
+  title, trips, formatRange, actionLabel, onAction,
+}: {
+  title: string;
+  trips: TripRow[];
+  formatRange: (s: string, e: string) => string;
+  actionLabel?: string;
+  onAction?: (id: string) => void;
+}) {
+  return (
+    <div className="space-y-3">
+      <h2 className="font-heading text-sm font-semibold">{title}</h2>
+      <div className="space-y-2">
+        {trips.map(t => (
+          <div key={t.id} className="rounded-2xl bg-card p-3 shadow-card flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-gradient-primary flex items-center justify-center">
+              <MapPin className="h-5 w-5 text-primary-foreground" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold truncate">{t.destination}</p>
+              <p className="text-xs text-muted-foreground">{formatRange(t.start_date, t.end_date)}</p>
+            </div>
+            {actionLabel && onAction && (
+              <Button size="sm" variant="outline" className="h-8 text-xs rounded-lg" onClick={() => onAction(t.id)}>
+                {actionLabel}
+              </Button>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
