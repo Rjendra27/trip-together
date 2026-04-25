@@ -195,16 +195,20 @@ export type Database = {
           age: number | null
           avatar_url: string | null
           bio: string | null
+          budget_preference: string | null
           created_at: string
           display_name: string | null
           gender: string | null
           id: string
           id_verified: boolean | null
           interests: string[] | null
+          is_available: boolean
           is_blocked: boolean | null
+          languages: string[]
           last_seen: string | null
           location: string | null
           online_status: boolean | null
+          preferred_group_size: string | null
           travel_style: string | null
           updated_at: string
           user_id: string
@@ -214,16 +218,20 @@ export type Database = {
           age?: number | null
           avatar_url?: string | null
           bio?: string | null
+          budget_preference?: string | null
           created_at?: string
           display_name?: string | null
           gender?: string | null
           id?: string
           id_verified?: boolean | null
           interests?: string[] | null
+          is_available?: boolean
           is_blocked?: boolean | null
+          languages?: string[]
           last_seen?: string | null
           location?: string | null
           online_status?: boolean | null
+          preferred_group_size?: string | null
           travel_style?: string | null
           updated_at?: string
           user_id: string
@@ -233,16 +241,20 @@ export type Database = {
           age?: number | null
           avatar_url?: string | null
           bio?: string | null
+          budget_preference?: string | null
           created_at?: string
           display_name?: string | null
           gender?: string | null
           id?: string
           id_verified?: boolean | null
           interests?: string[] | null
+          is_available?: boolean
           is_blocked?: boolean | null
+          languages?: string[]
           last_seen?: string | null
           location?: string | null
           online_status?: boolean | null
+          preferred_group_size?: string | null
           travel_style?: string | null
           updated_at?: string
           user_id?: string
@@ -320,6 +332,7 @@ export type Database = {
         Row: {
           budget_max: number | null
           budget_min: number | null
+          completed: boolean
           created_at: string
           description: string | null
           destination: string
@@ -338,6 +351,7 @@ export type Database = {
         Insert: {
           budget_max?: number | null
           budget_min?: number | null
+          completed?: boolean
           created_at?: string
           description?: string | null
           destination: string
@@ -356,6 +370,7 @@ export type Database = {
         Update: {
           budget_max?: number | null
           budget_min?: number | null
+          completed?: boolean
           created_at?: string
           description?: string | null
           destination?: string
