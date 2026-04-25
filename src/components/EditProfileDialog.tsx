@@ -11,6 +11,9 @@ import { Camera, Loader2, X } from "lucide-react";
 import { z } from "zod";
 
 const SUGGESTED = ["Trekking", "Photography", "Food", "Culture", "Beach", "Nightlife", "Hiking", "Surfing", "Museums", "Wildlife"];
+const SUGGESTED_LANGS = ["English", "Hindi", "Spanish", "French", "German", "Mandarin", "Japanese", "Arabic", "Portuguese", "Italian"];
+const GROUP_SIZES = ["Solo", "2-3", "4-6", "7+"];
+const BUDGETS = ["Budget", "Standard", "Premium", "Luxury"];
 
 const schema = z.object({
   display_name: z.string().trim().min(1, "Name is required").max(60, "Max 60 chars"),
@@ -27,6 +30,9 @@ interface Profile {
   age: number | null;
   interests: string[] | null;
   avatar_url: string | null;
+  languages?: string[] | null;
+  preferred_group_size?: string | null;
+  budget_preference?: string | null;
 }
 
 interface Props {
