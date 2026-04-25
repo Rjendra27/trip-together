@@ -1,4 +1,4 @@
-import { MapPin, Calendar, Users, DollarSign } from "lucide-react";
+import { MapPin, Calendar, Users, IndianRupee } from "lucide-react";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 
@@ -61,7 +61,7 @@ export default function TripCard({
             <span>{startDate} - {endDate}</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <DollarSign className="h-3.5 w-3.5" />
+            <IndianRupee className="h-3.5 w-3.5" />
             <span>{budget}</span>
           </div>
           <div className="flex items-center gap-1.5">

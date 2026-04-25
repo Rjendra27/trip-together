@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Calendar, MapPin, DollarSign, Users, FileText, Loader2 } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, IndianRupee, Users, FileText, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -100,15 +100,15 @@ export default function CreateTripPage() {
         <div className="grid grid-cols-3 gap-3">
           <div className="space-y-2">
             <label className="text-sm font-medium flex items-center gap-2">
-              <DollarSign className="h-4 w-4 text-primary" /> Min
+              <IndianRupee className="h-4 w-4 text-primary" /> Min (₹)
             </label>
-            <Input type="number" min={0} placeholder="500" value={budgetMin} onChange={e => setBudgetMin(e.target.value)} />
+            <Input type="number" min={0} placeholder="5000" value={budgetMin} onChange={e => setBudgetMin(e.target.value)} />
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium flex items-center gap-2">
-              <DollarSign className="h-4 w-4 text-primary" /> Max
+              <IndianRupee className="h-4 w-4 text-primary" /> Max (₹)
             </label>
-            <Input type="number" min={0} placeholder="1000" value={budgetMax} onChange={e => setBudgetMax(e.target.value)} />
+            <Input type="number" min={0} placeholder="50000" value={budgetMax} onChange={e => setBudgetMax(e.target.value)} />
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium flex items-center gap-2">

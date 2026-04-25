@@ -140,7 +140,7 @@ export default function TripsPage() {
             const spotsLeft = Math.max(0, (trip.spots_needed ?? 1) - (trip.spots_filled ?? 0));
             const budget =
               trip.budget_min != null && trip.budget_max != null
-                ? `$${trip.budget_min}-${trip.budget_max}`
+                ? `₹${trip.budget_min.toLocaleString("en-IN")}-${trip.budget_max.toLocaleString("en-IN")}`
                 : "Flexible";
             return (
               <TripCard
