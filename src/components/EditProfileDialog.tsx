@@ -11,6 +11,9 @@ import { Camera, Loader2, X } from "lucide-react";
 import { z } from "zod";
 
 const SUGGESTED = ["Trekking", "Photography", "Food", "Culture", "Beach", "Nightlife", "Hiking", "Surfing", "Museums", "Wildlife"];
+const SUGGESTED_LANGS = ["English", "Hindi", "Spanish", "French", "German", "Mandarin", "Japanese", "Arabic", "Portuguese", "Italian"];
+const GROUP_SIZES = ["Solo", "2-3", "4-6", "7+"];
+const BUDGETS = ["Budget", "Standard", "Premium", "Luxury"];
 
 const schema = z.object({
   display_name: z.string().trim().min(1, "Name is required").max(60, "Max 60 chars"),
@@ -27,6 +30,9 @@ interface Profile {
   age: number | null;
   interests: string[] | null;
   avatar_url: string | null;
+  languages?: string[] | null;
+  preferred_group_size?: string | null;
+  budget_preference?: string | null;
 }
 
 interface Props {
@@ -42,6 +48,9 @@ export default function EditProfileDialog({ open, onOpenChange, profile, onSaved
   const [location, setLocation] = useState("");
   const [age, setAge] = useState<string>("");
   const [interests, setInterests] = useState<string[]>([]);
+  const [languages, setLanguages] = useState<string[]>([]);
+  const [groupSize, setGroupSize] = useState<string>("");
+  const [budget, setBudget] = useState<string>("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -54,6 +63,9 @@ export default function EditProfileDialog({ open, onOpenChange, profile, onSaved
       setLocation(profile.location ?? "");
       setAge(profile.age?.toString() ?? "");
       setInterests(profile.interests ?? []);
+      setLanguages(profile.languages ?? []);
+      setGroupSize(profile.preferred_group_size ?? "");
+      setBudget(profile.budget_preference ?? "");
       setAvatarUrl(profile.avatar_url);
     }
   }, [open, profile]);
@@ -86,6 +98,10 @@ export default function EditProfileDialog({ open, onOpenChange, profile, onSaved
     setInterests(prev => prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i]);
   };
 
+  const toggleLanguage = (l: string) => {
+    setLanguages(prev => prev.includes(l) ? prev.filter(x => x !== l) : [...prev, l]);
+  };
+
   const handleSave = async () => {
     const parsed = schema.safeParse({
       display_name: displayName,
@@ -107,6 +123,9 @@ export default function EditProfileDialog({ open, onOpenChange, profile, onSaved
           location: parsed.data.location ?? null,
           age: parsed.data.age,
           interests,
+          languages,
+          preferred_group_size: groupSize || null,
+          budget_preference: budget || null,
           avatar_url: avatarUrl,
         })
         .eq("user_id", profile.user_id);
@@ -202,6 +221,65 @@ export default function EditProfileDialog({ open, onOpenChange, profile, onSaved
             {interests.length > 0 && (
               <p className="text-xs text-muted-foreground">{interests.length} selected</p>
             )}
+          </div>
+
+          <div className="space-y-2">
+            <Label>Languages spoken</Label>
+            <div className="flex flex-wrap gap-2">
+              {SUGGESTED_LANGS.map(l => {
+                const active = languages.includes(l);
+                return (
+                  <button
+                    key={l}
+                    type="button"
+                    onClick={() => toggleLanguage(l)}
+                    className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                      active ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-secondary/70"
+                    }`}
+                  >
+                    {l}
+                    {active && <X className="inline h-3 w-3 ml-1" />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label>Group size</Label>
+              <div className="flex flex-wrap gap-1.5">
+                {GROUP_SIZES.map(g => (
+                  <button
+                    key={g}
+                    type="button"
+                    onClick={() => setGroupSize(groupSize === g ? "" : g)}
+                    className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                      groupSize === g ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-secondary/70"
+                    }`}
+                  >
+                    {g}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Budget</Label>
+              <div className="flex flex-wrap gap-1.5">
+                {BUDGETS.map(b => (
+                  <button
+                    key={b}
+                    type="button"
+                    onClick={() => setBudget(budget === b ? "" : b)}
+                    className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                      budget === b ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-secondary/70"
+                    }`}
+                  >
+                    {b}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
