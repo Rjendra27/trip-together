@@ -1,5 +1,5 @@
-import { Search, SlidersHorizontal, Plus, Sparkles, TrendingUp, Bookmark } from "lucide-react";
-import { useState } from "react";
+import { Search, SlidersHorizontal, Plus, Sparkles, TrendingUp, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,26 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import TripCard from "@/components/TripCard";
 import heroImage from "@/assets/hero-travel.jpg";
+import { supabase } from "@/integrations/supabase/client";
+
+const FALLBACK_IMG = "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=600&h=400&fit=crop";
+
+interface DbTrip {
+  id: string;
+  destination: string;
+  start_date: string;
+  end_date: string;
+  budget_min: number | null;
+  budget_max: number | null;
+  spots_needed: number | null;
+  spots_filled: number | null;
+  trip_type: string | null;
+  user_id: string;
+  created_at: string;
+}
+
+const formatDate = (d: string) =>
+  new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 
 const CATEGORIES = [
   { emoji: "🏔️", label: "Adventure" },
@@ -23,56 +43,44 @@ const RECOMMENDED = [
   { destination: "Santorini, Greece", image: "https://images.unsplash.com/photo-1613395877344-13d4a8e0d49e?w=300&h=200&fit=crop", matchPercent: 82 },
 ];
 
-const SAMPLE_TRIPS = [
-  {
-    destination: "Bali, Indonesia",
-    startDate: "Jun 15",
-    endDate: "Jun 22",
-    budget: "$800-1200",
-    spotsLeft: 2,
-    tripType: "Adventure",
-    imageUrl: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=600&h=400&fit=crop",
-    creatorName: "Alex M.",
-    creatorAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
-  },
-  {
-    destination: "Santorini, Greece",
-    startDate: "Jul 1",
-    endDate: "Jul 8",
-    budget: "$1500-2000",
-    spotsLeft: 1,
-    tripType: "Chill",
-    imageUrl: "https://images.unsplash.com/photo-1613395877344-13d4a8e0d49e?w=600&h=400&fit=crop",
-    creatorName: "Sarah K.",
-    creatorAvatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face",
-  },
-  {
-    destination: "Tokyo, Japan",
-    startDate: "Aug 10",
-    endDate: "Aug 20",
-    budget: "$2000-3000",
-    spotsLeft: 3,
-    tripType: "Culture",
-    imageUrl: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=600&h=400&fit=crop",
-    creatorName: "Mike R.",
-    creatorAvatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face",
-  },
-  {
-    destination: "Patagonia, Argentina",
-    startDate: "Sep 5",
-    endDate: "Sep 15",
-    budget: "$1200-1800",
-    spotsLeft: 4,
-    tripType: "Trekking",
-    imageUrl: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=600&h=400&fit=crop",
-    creatorName: "Luna T.",
-    creatorAvatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face",
-  },
-];
-
 export default function HomePage() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
+  const [trips, setTrips] = useState<DbTrip[]>([]);
+  const [profiles, setProfiles] = useState<Record<string, { display_name: string | null; avatar_url: string | null }>>({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      const { data } = await supabase
+        .from("trips")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(6);
+      const list = (data || []) as DbTrip[];
+      setTrips(list);
+      const ids = [...new Set(list.map(t => t.user_id))];
+      if (ids.length) {
+        const { data: profs } = await supabase
+          .from("profiles")
+          .select("user_id, display_name, avatar_url")
+          .in("user_id", ids);
+        const map: Record<string, { display_name: string | null; avatar_url: string | null }> = {};
+        (profs || []).forEach((p: any) => { map[p.user_id] = p; });
+        setProfiles(map);
+      }
+      setLoading(false);
+    };
+    load();
+
+    const channel = supabase
+      .channel("home-trips")
+      .on("postgres_changes", { event: "*", schema: "public", table: "trips" }, load)
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
+
+  const filteredTrips = trips.filter(t => t.destination.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <div className="min-h-screen pb-24">
