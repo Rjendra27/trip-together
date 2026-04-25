@@ -222,6 +222,65 @@ export default function EditProfileDialog({ open, onOpenChange, profile, onSaved
               <p className="text-xs text-muted-foreground">{interests.length} selected</p>
             )}
           </div>
+
+          <div className="space-y-2">
+            <Label>Languages spoken</Label>
+            <div className="flex flex-wrap gap-2">
+              {SUGGESTED_LANGS.map(l => {
+                const active = languages.includes(l);
+                return (
+                  <button
+                    key={l}
+                    type="button"
+                    onClick={() => toggleLanguage(l)}
+                    className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                      active ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-secondary/70"
+                    }`}
+                  >
+                    {l}
+                    {active && <X className="inline h-3 w-3 ml-1" />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label>Group size</Label>
+              <div className="flex flex-wrap gap-1.5">
+                {GROUP_SIZES.map(g => (
+                  <button
+                    key={g}
+                    type="button"
+                    onClick={() => setGroupSize(groupSize === g ? "" : g)}
+                    className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                      groupSize === g ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-secondary/70"
+                    }`}
+                  >
+                    {g}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Budget</Label>
+              <div className="flex flex-wrap gap-1.5">
+                {BUDGETS.map(b => (
+                  <button
+                    key={b}
+                    type="button"
+                    onClick={() => setBudget(budget === b ? "" : b)}
+                    className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                      budget === b ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-secondary/70"
+                    }`}
+                  >
+                    {b}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
 
         <DialogFooter className="gap-2 sm:gap-2">
