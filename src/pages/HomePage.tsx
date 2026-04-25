@@ -164,9 +164,37 @@ export default function HomePage() {
           <Button variant="ghost" size="sm" className="text-primary text-xs" onClick={() => navigate("/trips")}>See all</Button>
         </div>
         <div className="grid gap-4">
-          {SAMPLE_TRIPS.filter(t => t.destination.toLowerCase().includes(search.toLowerCase())).map((trip, i) => (
-            <TripCard key={i} {...trip} />
-          ))}
+          {loading ? (
+            <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+          ) : filteredTrips.length === 0 ? (
+            <div className="text-center text-muted-foreground py-10 space-y-3">
+              <p>No trips available yet. Be the first to create one.</p>
+              <Button variant="gradient" size="sm" className="rounded-xl" onClick={() => navigate("/trips/create")}>
+                <Plus className="h-4 w-4 mr-1" /> Create Trip
+              </Button>
+            </div>
+          ) : (
+            filteredTrips.map((trip) => {
+              const profile = profiles[trip.user_id];
+              const spotsLeft = Math.max(0, (trip.spots_needed ?? 1) - (trip.spots_filled ?? 0));
+              const budget = trip.budget_min != null && trip.budget_max != null ? `$${trip.budget_min}-${trip.budget_max}` : "Flexible";
+              return (
+                <TripCard
+                  key={trip.id}
+                  destination={trip.destination}
+                  startDate={formatDate(trip.start_date)}
+                  endDate={formatDate(trip.end_date)}
+                  budget={budget}
+                  spotsLeft={spotsLeft}
+                  tripType={trip.trip_type || "adventure"}
+                  imageUrl={FALLBACK_IMG}
+                  creatorName={profile?.display_name || "Traveler"}
+                  creatorAvatar={profile?.avatar_url || "https://api.dicebear.com/7.x/avataaars/svg?seed=" + trip.user_id}
+                  onClick={() => navigate("/trips")}
+                />
+              );
+            })
+          )}
         </div>
       </div>
 
