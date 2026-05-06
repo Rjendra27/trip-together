@@ -264,7 +264,22 @@ export default function ProfilePage() {
   const isVerified = !!(profile.phone_verified || profile.verification_badge);
   const profileComplete =
     !!profile.display_name && !!profile.bio && !!profile.location && (profile.interests?.length ?? 0) > 0;
-  const trustedTraveler = isVerified && profileComplete && reviewCount >= 3;
+
+  // Trust Score (0-100): phone 30 + completed trips 30 + reviews 30 + profile completeness 10
+  const completedTripsCount = myTrips.filter(t => t.completed || t.end_date < today).length;
+  const phoneScore = profile.phone_verified ? 30 : 0;
+  const tripsScore = Math.min(completedTripsCount, 3) * 10; // 30 at 3+ trips
+  const reviewsScore = Math.min(reviewCount, 3) * 10; // 30 at 3+ reviews
+  const completenessScore = profileComplete ? 10 : Math.round(
+    ((profile.display_name ? 1 : 0) +
+      (profile.bio ? 1 : 0) +
+      (profile.location ? 1 : 0) +
+      ((profile.interests?.length ?? 0) > 0 ? 1 : 0)) * 2.5
+  );
+  const trustScore = phoneScore + tripsScore + reviewsScore + completenessScore;
+  const trustTier: "New" | "Verified" | "Trusted" =
+    trustScore >= 80 ? "Trusted" : trustScore >= 50 ? "Verified" : "New";
+  const trustedTraveler = trustTier === "Trusted";
 
   const memberSince = profile.created_at
     ? new Date(profile.created_at).toLocaleDateString(undefined, { month: "long", year: "numeric" })
@@ -349,7 +364,43 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Availability toggle */}
+        {/* Trust Score */}
+        <div className="rounded-2xl bg-card p-4 shadow-card space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-accent" />
+              <h2 className="font-heading text-sm font-semibold">Trust Score</h2>
+            </div>
+            <Badge
+              variant="outline"
+              className={
+                trustTier === "Trusted"
+                  ? "border-accent/40 bg-accent/10 text-accent"
+                  : trustTier === "Verified"
+                  ? "border-primary/40 bg-primary/10 text-primary"
+                  : "border-muted-foreground/30 text-muted-foreground"
+              }
+            >
+              {trustTier}
+            </Badge>
+          </div>
+          <div className="flex items-end gap-3">
+            <span className="font-heading text-3xl font-bold leading-none">{trustScore}</span>
+            <span className="text-xs text-muted-foreground pb-1">/ 100</span>
+          </div>
+          <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
+            <div
+              className="h-full bg-gradient-primary transition-all"
+              style={{ width: `${trustScore}%` }}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+            <span>📱 Phone +{phoneScore}/30</span>
+            <span>✈️ Trips +{tripsScore}/30</span>
+            <span>⭐ Reviews +{reviewsScore}/30</span>
+            <span>🧑 Profile +{completenessScore}/10</span>
+          </div>
+        </div>
         <div className="rounded-2xl bg-card p-4 shadow-card flex items-center justify-between">
           <div>
             <h3 className="text-sm font-semibold">Availability</h3>
