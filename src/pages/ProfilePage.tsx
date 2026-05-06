@@ -264,7 +264,22 @@ export default function ProfilePage() {
   const isVerified = !!(profile.phone_verified || profile.verification_badge);
   const profileComplete =
     !!profile.display_name && !!profile.bio && !!profile.location && (profile.interests?.length ?? 0) > 0;
-  const trustedTraveler = isVerified && profileComplete && reviewCount >= 3;
+
+  // Trust Score (0-100): phone 30 + completed trips 30 + reviews 30 + profile completeness 10
+  const completedTripsCount = myTrips.filter(t => t.completed || t.end_date < today).length;
+  const phoneScore = profile.phone_verified ? 30 : 0;
+  const tripsScore = Math.min(completedTripsCount, 3) * 10; // 30 at 3+ trips
+  const reviewsScore = Math.min(reviewCount, 3) * 10; // 30 at 3+ reviews
+  const completenessScore = profileComplete ? 10 : Math.round(
+    ((profile.display_name ? 1 : 0) +
+      (profile.bio ? 1 : 0) +
+      (profile.location ? 1 : 0) +
+      ((profile.interests?.length ?? 0) > 0 ? 1 : 0)) * 2.5
+  );
+  const trustScore = phoneScore + tripsScore + reviewsScore + completenessScore;
+  const trustTier: "New" | "Verified" | "Trusted" =
+    trustScore >= 80 ? "Trusted" : trustScore >= 50 ? "Verified" : "New";
+  const trustedTraveler = trustTier === "Trusted";
 
   const memberSince = profile.created_at
     ? new Date(profile.created_at).toLocaleDateString(undefined, { month: "long", year: "numeric" })
