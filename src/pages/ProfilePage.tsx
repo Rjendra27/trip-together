@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import ReviewsSection from "@/components/ReviewsSection";
 import EditProfileDialog from "@/components/EditProfileDialog";
 import PhoneVerificationDialog from "@/components/PhoneVerificationDialog";
+import LanguageSelector from "@/components/LanguageSelector";
 import { toast } from "sonner";
 
 const MENU_ITEMS = [
@@ -572,6 +573,14 @@ export default function ProfilePage() {
             <ChevronRight className="h-4 w-4" />
           </button>
         )}
+
+        {/* Language */}
+        <div className="rounded-2xl bg-card shadow-card p-4 space-y-2">
+          <div className="flex items-center gap-2 text-sm font-medium">
+            <Globe className="h-4 w-4 text-primary" /> Language / भाषा
+          </div>
+          <LanguageSelector />
+        </div>
 
         {/* Menu */}
         <div className="rounded-2xl bg-card shadow-card overflow-hidden divide-y divide-border">
