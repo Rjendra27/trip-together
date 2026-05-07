@@ -85,7 +85,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen pb-24">
       {/* Hero */}
-      <div className="relative h-72 overflow-hidden">
+      <div className="relative h-[420px] overflow-hidden">
         <img src={heroImage} alt="Travel" className="h-full w-full object-cover" width={1920} height={1080} />
         <div className="absolute inset-0 bg-gradient-to-b from-foreground/20 via-foreground/40 to-foreground/80" />
         <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
