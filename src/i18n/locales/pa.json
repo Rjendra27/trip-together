@@ -1,0 +1,36 @@
+{
+  "nav": { "home": "ਹੋਮ", "trips": "ਟ੍ਰਿਪਾਂ", "matches": "ਮੈਚ", "chat": "ਚੈਟ", "profile": "ਪ੍ਰੋਫਾਈਲ" },
+  "home": {
+    "online_count": "{{count}} ਯਾਤਰੀ ਆਨਲਾਈਨ",
+    "headline": "ਹੁਣ ਇਕੱਲੇ ਸਫ਼ਰ ਨਹੀਂ",
+    "subhead": "ਉਸੇ ਰਾਹ 'ਤੇ ਜਾ ਰਹੇ ਪ੍ਰਮਾਣਿਤ ਯਾਤਰੀਆਂ ਨਾਲ ਜੁੜੋ.",
+    "cta_find_buddy": "ਟ੍ਰੈਵਲ ਬੱਡੀ ਲੱਭੋ",
+    "trust_line": "ID ਪ੍ਰਮਾਣਿਤ · ਫ਼ੋਨ ਪ੍ਰਮਾਣਿਤ",
+    "search_placeholder": "ਕਿੱਥੇ ਜਾਣਾ ਹੈ?",
+    "for_you": "ਤੁਹਾਡੇ ਲਈ",
+    "trending": "ਟ੍ਰੈਂਡਿੰਗ",
+    "popular_in_india": "ਭਾਰਤ ਵਿੱਚ ਪ੍ਰਸਿੱਧ",
+    "see_all": "ਸਾਰੇ ਵੇਖੋ",
+    "empty_trips": "ਅਜੇ ਕੋਈ ਟ੍ਰਿਪ ਨਹੀਂ.",
+    "create_trip": "ਟ੍ਰਿਪ ਬਣਾਓ"
+  },
+  "categories": {
+    "adventure": "ਐਡਵੈਂਚਰ", "beach": "ਬੀਚ", "food": "ਖਾਣਾ", "culture": "ਸੱਭਿਆਚਾਰ",
+    "nightlife": "ਨਾਈਟਲਾਈਫ਼", "trekking": "ਟ੍ਰੈਕਿੰਗ", "weekend": "ਵੀਕਐਂਡ",
+    "festival": "ਤਿਉਹਾਰ", "temple": "ਮੰਦਰ", "budget": "ਬਜਟ", "group": "ਗਰੁੱਪ"
+  },
+  "trip": {
+    "destination": "ਮੰਜ਼ਿਲ", "start_date": "ਸ਼ੁਰੂ", "end_date": "ਅੰਤ",
+    "min": "ਘੱਟੋ-ਘੱਟ (₹)", "max": "ਵੱਧ ਤੋਂ ਵੱਧ (₹)", "spots": "ਥਾਂਵਾਂ", "trip_type": "ਕਿਸਮ",
+    "description": "ਵੇਰਵਾ", "publish": "ਪ੍ਰਕਾਸ਼ਿਤ", "publishing": "ਪ੍ਰਕਾਸ਼ਿਤ ਹੋ ਰਿਹਾ ਹੈ...",
+    "create": "ਟ੍ਰਿਪ ਬਣਾਓ",
+    "destination_placeholder": "ਜਿਵੇਂ ਗੋਆ, ਮਨਾਲੀ",
+    "description_placeholder": "ਆਪਣੀ ਟ੍ਰਿਪ ਬਾਰੇ ਦੱਸੋ..."
+  },
+  "profile": {
+    "edit": "ਸੋਧੋ", "language": "ਭਾਸ਼ਾ", "settings": "ਸੈਟਿੰਗਜ਼",
+    "sign_out": "ਸਾਈਨ ਆਉਟ", "trips_joined": "ਜੋੜੀਆਂ ਟ੍ਰਿਪਾਂ",
+    "completed_trips": "ਮੁਕੰਮਲ ਟ੍ਰਿਪਾਂ", "reviews": "ਸਮੀਖਿਆਵਾਂ", "trust_score": "ਟ੍ਰਸਟ ਸਕੋਰ"
+  },
+  "common": { "loading": "ਲੋਡ ਹੋ ਰਿਹਾ ਹੈ...", "save": "ਸੇਵ", "cancel": "ਰੱਦ", "select_language": "ਭਾਸ਼ਾ ਚੁਣੋ" }
+}

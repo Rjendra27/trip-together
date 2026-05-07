@@ -1,0 +1,36 @@
+{
+  "nav": { "home": "होम", "trips": "ट्रिप्स", "matches": "मॅचेस", "chat": "चॅट", "profile": "प्रोफाइल" },
+  "home": {
+    "online_count": "{{count}} प्रवासी ऑनलाइन",
+    "headline": "आता एकट्याने प्रवास नको",
+    "subhead": "त्याच मार्गावर जाणाऱ्या सत्यापित प्रवाशांशी जोडा.",
+    "cta_find_buddy": "प्रवास सोबती शोधा",
+    "trust_line": "ID सत्यापित · फोन सत्यापित",
+    "search_placeholder": "कुठे जायचे आहे?",
+    "for_you": "तुमच्यासाठी",
+    "trending": "ट्रेंडिंग ट्रिप्स",
+    "popular_in_india": "भारतात लोकप्रिय",
+    "see_all": "सर्व पहा",
+    "empty_trips": "अद्याप ट्रिप्स नाहीत.",
+    "create_trip": "ट्रिप तयार करा"
+  },
+  "categories": {
+    "adventure": "साहस", "beach": "बीच", "food": "अन्न", "culture": "संस्कृती",
+    "nightlife": "नाइटलाइफ", "trekking": "ट्रेकिंग", "weekend": "वीकेंड",
+    "festival": "सण", "temple": "मंदिरे", "budget": "बजेट", "group": "ग्रुप"
+  },
+  "trip": {
+    "destination": "गंतव्य", "start_date": "सुरुवात", "end_date": "शेवट",
+    "min": "किमान (₹)", "max": "कमाल (₹)", "spots": "जागा", "trip_type": "प्रकार",
+    "description": "वर्णन", "publish": "प्रकाशित करा", "publishing": "प्रकाशित होत आहे...",
+    "create": "ट्रिप तयार करा",
+    "destination_placeholder": "उदा. गोवा, मनाली",
+    "description_placeholder": "तुमच्या ट्रिप बद्दल सांगा..."
+  },
+  "profile": {
+    "edit": "संपादित करा", "language": "भाषा", "settings": "सेटिंग्ज",
+    "sign_out": "साइन आउट", "trips_joined": "सामील ट्रिप्स",
+    "completed_trips": "पूर्ण ट्रिप्स", "reviews": "पुनरावलोकने", "trust_score": "ट्रस्ट स्कोर"
+  },
+  "common": { "loading": "लोड होत आहे...", "save": "जतन करा", "cancel": "रद्द", "select_language": "भाषा निवडा" }
+}

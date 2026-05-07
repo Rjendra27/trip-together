@@ -1,0 +1,36 @@
+{
+  "nav": { "home": "হোম", "trips": "ট্রিপ", "matches": "ম্যাচ", "chat": "চ্যাট", "profile": "প্রোফাইল" },
+  "home": {
+    "online_count": "{{count}} জন অনলাইন",
+    "headline": "আর একা নয়, সঙ্গী খুঁজুন",
+    "subhead": "একই পথে যাচ্ছেন এমন যাচাইকৃত ভ্রমণকারীদের সাথে যুক্ত হন।",
+    "cta_find_buddy": "ট্রাভেল বাডি খুঁজুন",
+    "trust_line": "ID যাচাই · ফোন যাচাই",
+    "search_placeholder": "কোথায় যেতে চান?",
+    "for_you": "আপনার জন্য",
+    "trending": "ট্রেন্ডিং ট্রিপ",
+    "popular_in_india": "ভারতে জনপ্রিয়",
+    "see_all": "সব দেখুন",
+    "empty_trips": "এখনো কোনো ট্রিপ নেই।",
+    "create_trip": "ট্রিপ তৈরি করুন"
+  },
+  "categories": {
+    "adventure": "অ্যাডভেঞ্চার", "beach": "সৈকত", "food": "খাবার", "culture": "সংস্কৃতি",
+    "nightlife": "নাইটলাইফ", "trekking": "ট্রেকিং", "weekend": "উইকেন্ড",
+    "festival": "উৎসব", "temple": "মন্দির", "budget": "বাজেট", "group": "গ্রুপ"
+  },
+  "trip": {
+    "destination": "গন্তব্য", "start_date": "শুরু", "end_date": "শেষ",
+    "min": "ন্যূনতম (₹)", "max": "সর্বোচ্চ (₹)", "spots": "আসন", "trip_type": "ধরন",
+    "description": "বিবরণ", "publish": "প্রকাশ", "publishing": "প্রকাশ হচ্ছে...",
+    "create": "ট্রিপ তৈরি",
+    "destination_placeholder": "যেমন গোয়া, মানালি",
+    "description_placeholder": "আপনার ট্রিপের পরিকল্পনা বলুন..."
+  },
+  "profile": {
+    "edit": "এডিট", "language": "ভাষা", "settings": "সেটিংস",
+    "sign_out": "সাইন আউট", "trips_joined": "যোগ দেওয়া ট্রিপ",
+    "completed_trips": "সম্পন্ন ট্রিপ", "reviews": "রিভিউ", "trust_score": "ট্রাস্ট স্কোর"
+  },
+  "common": { "loading": "লোড হচ্ছে...", "save": "সেভ", "cancel": "বাতিল", "select_language": "ভাষা নির্বাচন" }
+}
