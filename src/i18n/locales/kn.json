@@ -1,0 +1,36 @@
+{
+  "nav": { "home": "ಮುಖಪುಟ", "trips": "ಪ್ರವಾಸಗಳು", "matches": "ಮ್ಯಾಚ್‌ಗಳು", "chat": "ಚಾಟ್", "profile": "ಪ್ರೊಫೈಲ್" },
+  "home": {
+    "online_count": "{{count}} ಪ್ರಯಾಣಿಕರು ಆನ್‌ಲೈನ್",
+    "headline": "ಇನ್ನು ಒಬ್ಬರೇ ಪ್ರಯಾಣ ಬೇಡ",
+    "subhead": "ಒಂದೇ ದಿಕ್ಕಿಗೆ ಹೋಗುವ ಪ್ರಯಾಣಿಕರೊಂದಿಗೆ ಸಂಪರ್ಕ ಸಾಧಿಸಿ.",
+    "cta_find_buddy": "ಟ್ರಾವೆಲ್ ಬಡ್ಡಿ ಹುಡುಕಿ",
+    "trust_line": "ID ಪರಿಶೀಲಿತ · ಫೋನ್ ಪರಿಶೀಲಿತ",
+    "search_placeholder": "ಎಲ್ಲಿಗೆ ಹೋಗಬೇಕು?",
+    "for_you": "ನಿಮಗಾಗಿ",
+    "trending": "ಟ್ರೆಂಡಿಂಗ್ ಪ್ರವಾಸಗಳು",
+    "popular_in_india": "ಭಾರತದಲ್ಲಿ ಪಾಪ್ಯುಲರ್",
+    "see_all": "ಎಲ್ಲವನ್ನೂ ನೋಡಿ",
+    "empty_trips": "ಇನ್ನೂ ಪ್ರವಾಸಗಳಿಲ್ಲ.",
+    "create_trip": "ಪ್ರವಾಸ ರಚಿಸಿ"
+  },
+  "categories": {
+    "adventure": "ಸಾಹಸ", "beach": "ಬೀಚ್", "food": "ಆಹಾರ", "culture": "ಸಂಸ್ಕೃತಿ",
+    "nightlife": "ನೈಟ್‌ಲೈಫ್", "trekking": "ಟ್ರೆಕ್ಕಿಂಗ್", "weekend": "ವೀಕೆಂಡ್",
+    "festival": "ಹಬ್ಬ", "temple": "ದೇವಸ್ಥಾನಗಳು", "budget": "ಬಜೆಟ್", "group": "ಗ್ರೂಪ್"
+  },
+  "trip": {
+    "destination": "ಗಮ್ಯ", "start_date": "ಪ್ರಾರಂಭ", "end_date": "ಮುಕ್ತಾಯ",
+    "min": "ಕನಿಷ್ಠ (₹)", "max": "ಗರಿಷ್ಠ (₹)", "spots": "ಸ್ಥಳಗಳು", "trip_type": "ಪ್ರಕಾರ",
+    "description": "ವಿವರಣೆ", "publish": "ಪ್ರಕಟಿಸಿ", "publishing": "ಪ್ರಕಟಿಸಲಾಗುತ್ತಿದೆ...",
+    "create": "ಪ್ರವಾಸ ರಚಿಸಿ",
+    "destination_placeholder": "ಉದಾ. ಗೋವಾ, ಮನಾಲಿ, ಹೈದರಾಬಾದ್",
+    "description_placeholder": "ನಿಮ್ಮ ಪ್ರವಾಸದ ಬಗ್ಗೆ ಹೇಳಿ..."
+  },
+  "profile": {
+    "edit": "ಸಂಪಾದಿಸಿ", "language": "ಭಾಷೆ", "settings": "ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
+    "sign_out": "ಸೈನ್ ಔಟ್", "trips_joined": "ಸೇರಿದ ಪ್ರವಾಸಗಳು",
+    "completed_trips": "ಮುಗಿದ ಪ್ರವಾಸಗಳು", "reviews": "ವಿಮರ್ಶೆಗಳು", "trust_score": "ಟ್ರಸ್ಟ್ ಸ್ಕೋರ್"
+  },
+  "common": { "loading": "ಲೋಡ್...", "save": "ಸೇವ್", "cancel": "ರದ್ದು", "select_language": "ಭಾಷೆ ಆಯ್ಕೆಮಾಡಿ" }
+}

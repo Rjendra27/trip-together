@@ -1,0 +1,56 @@
+{
+  "nav": { "home": "Home", "trips": "Trips", "matches": "Matches", "chat": "Chat", "profile": "Profile" },
+  "home": {
+    "online_count": "{{count}} travelers online",
+    "headline": "Never travel alone again",
+    "subhead": "Match with verified travelers heading the same way. Plan trips, split costs, make memories.",
+    "cta_find_buddy": "Find Travel Buddy",
+    "trust_line": "ID verified · Phone verified · Trusted Traveler badges",
+    "search_placeholder": "Where do you want to go?",
+    "for_you": "For You",
+    "trending": "Trending Trips",
+    "popular_in_india": "Popular in India",
+    "see_all": "See all",
+    "empty_trips": "No trips available yet. Be the first to create one.",
+    "create_trip": "Create Trip"
+  },
+  "categories": {
+    "adventure": "Adventure",
+    "beach": "Beach",
+    "food": "Food",
+    "culture": "Culture",
+    "nightlife": "Nightlife",
+    "trekking": "Trekking",
+    "weekend": "Weekend",
+    "festival": "Festival",
+    "temple": "Temples",
+    "budget": "Budget",
+    "group": "Group"
+  },
+  "trip": {
+    "destination": "Destination",
+    "start_date": "Start Date",
+    "end_date": "End Date",
+    "min": "Min (₹)",
+    "max": "Max (₹)",
+    "spots": "Spots",
+    "trip_type": "Trip Type",
+    "description": "Description",
+    "publish": "Publish Trip",
+    "publishing": "Publishing...",
+    "create": "Create Trip",
+    "destination_placeholder": "e.g. Goa, Manali, Hyderabad",
+    "description_placeholder": "Tell us about your trip plans..."
+  },
+  "profile": {
+    "edit": "Edit Profile",
+    "language": "Language",
+    "settings": "Settings",
+    "sign_out": "Sign Out",
+    "trips_joined": "Trips Joined",
+    "completed_trips": "Completed Trips",
+    "reviews": "Reviews",
+    "trust_score": "Trust Score"
+  },
+  "common": { "loading": "Loading...", "save": "Save", "cancel": "Cancel", "select_language": "Select language" }
+}

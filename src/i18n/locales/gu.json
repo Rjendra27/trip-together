@@ -1,0 +1,36 @@
+{
+  "nav": { "home": "હોમ", "trips": "ટ્રિપ્સ", "matches": "મેચ", "chat": "ચેટ", "profile": "પ્રોફાઇલ" },
+  "home": {
+    "online_count": "{{count}} પ્રવાસીઓ ઓનલાઇન",
+    "headline": "હવે એકલા પ્રવાસ નહીં",
+    "subhead": "એ જ માર્ગે જઈ રહેલા ચકાસાયેલા પ્રવાસીઓ સાથે જોડાઓ.",
+    "cta_find_buddy": "ટ્રાવેલ બડી શોધો",
+    "trust_line": "ID ચકાસાયેલ · ફોન ચકાસાયેલ",
+    "search_placeholder": "ક્યાં જવું છે?",
+    "for_you": "તમારા માટે",
+    "trending": "ટ્રેન્ડિંગ",
+    "popular_in_india": "ભારતમાં લોકપ્રિય",
+    "see_all": "બધું જુઓ",
+    "empty_trips": "હજુ સુધી કોઈ ટ્રિપ નથી.",
+    "create_trip": "ટ્રિપ બનાવો"
+  },
+  "categories": {
+    "adventure": "સાહસ", "beach": "બીચ", "food": "ખોરાક", "culture": "સંસ્કૃતિ",
+    "nightlife": "નાઇટલાઇફ", "trekking": "ટ્રેકિંગ", "weekend": "વીકએન્ડ",
+    "festival": "તહેવાર", "temple": "મંદિરો", "budget": "બજેટ", "group": "ગ્રુપ"
+  },
+  "trip": {
+    "destination": "ગંતવ્ય", "start_date": "શરૂઆત", "end_date": "અંત",
+    "min": "ન્યૂનતમ (₹)", "max": "મહત્તમ (₹)", "spots": "જગ્યા", "trip_type": "પ્રકાર",
+    "description": "વર્ણન", "publish": "પ્રકાશિત કરો", "publishing": "પ્રકાશિત થઈ રહ્યું છે...",
+    "create": "ટ્રિપ બનાવો",
+    "destination_placeholder": "દા.ત. ગોવા, મનાલી",
+    "description_placeholder": "તમારી ટ્રિપ વિશે કહો..."
+  },
+  "profile": {
+    "edit": "સંપાદિત કરો", "language": "ભાષા", "settings": "સેટિંગ્સ",
+    "sign_out": "સાઇન આઉટ", "trips_joined": "જોડાયેલ ટ્રિપ્સ",
+    "completed_trips": "પૂર્ણ ટ્રિપ્સ", "reviews": "સમીક્ષાઓ", "trust_score": "ટ્રસ્ટ સ્કોર"
+  },
+  "common": { "loading": "લોડ થઈ રહ્યું છે...", "save": "સેવ", "cancel": "રદ", "select_language": "ભાષા પસંદ કરો" }
+}

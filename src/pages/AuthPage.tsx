@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
+import LanguageSelector from "@/components/LanguageSelector";
 import heroImage from "@/assets/hero-travel.jpg";
 
 export default function AuthPage() {
@@ -88,6 +89,9 @@ export default function AuthPage() {
       <div className="relative h-56 overflow-hidden">
         <img src={heroImage} alt="Travel" className="h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-b from-foreground/30 to-foreground/70" />
+        <div className="absolute top-3 right-3 z-10">
+          <LanguageSelector variant="compact" />
+        </div>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="font-heading text-4xl font-bold text-primary-foreground">
             TripMate

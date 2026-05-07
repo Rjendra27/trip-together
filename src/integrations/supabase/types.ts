@@ -209,6 +209,7 @@ export type Database = {
           location: string | null
           online_status: boolean | null
           preferred_group_size: string | null
+          preferred_language: string | null
           travel_style: string | null
           updated_at: string
           user_id: string
@@ -232,6 +233,7 @@ export type Database = {
           location?: string | null
           online_status?: boolean | null
           preferred_group_size?: string | null
+          preferred_language?: string | null
           travel_style?: string | null
           updated_at?: string
           user_id: string
@@ -255,6 +257,7 @@ export type Database = {
           location?: string | null
           online_status?: boolean | null
           preferred_group_size?: string | null
+          preferred_language?: string | null
           travel_style?: string | null
           updated_at?: string
           user_id?: string

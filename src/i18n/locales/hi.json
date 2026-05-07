@@ -1,0 +1,36 @@
+{
+  "nav": { "home": "होम", "trips": "यात्राएँ", "matches": "मैच", "chat": "चैट", "profile": "प्रोफ़ाइल" },
+  "home": {
+    "online_count": "{{count}} यात्री ऑनलाइन",
+    "headline": "अब अकेले सफर नहीं",
+    "subhead": "उसी रास्ते पर जा रहे सत्यापित यात्रियों से जुड़ें। योजना बनाएं, खर्च बाँटें, यादें बनाएं।",
+    "cta_find_buddy": "ट्रैवल बडी ढूंढें",
+    "trust_line": "ID सत्यापित · फ़ोन सत्यापित · विश्वसनीय यात्री बैज",
+    "search_placeholder": "कहाँ जाना चाहते हैं?",
+    "for_you": "आपके लिए",
+    "trending": "ट्रेंडिंग यात्राएँ",
+    "popular_in_india": "भारत में लोकप्रिय",
+    "see_all": "सभी देखें",
+    "empty_trips": "अभी कोई यात्रा नहीं। पहला बनाएं।",
+    "create_trip": "यात्रा बनाएं"
+  },
+  "categories": {
+    "adventure": "एडवेंचर", "beach": "बीच", "food": "खाना", "culture": "संस्कृति",
+    "nightlife": "नाइटलाइफ़", "trekking": "ट्रेकिंग", "weekend": "वीकेंड",
+    "festival": "त्योहार", "temple": "मंदिर", "budget": "बजट", "group": "ग्रुप"
+  },
+  "trip": {
+    "destination": "गंतव्य", "start_date": "प्रारंभ तिथि", "end_date": "अंतिम तिथि",
+    "min": "न्यूनतम (₹)", "max": "अधिकतम (₹)", "spots": "स्थान", "trip_type": "यात्रा प्रकार",
+    "description": "विवरण", "publish": "यात्रा प्रकाशित करें", "publishing": "प्रकाशित हो रहा है...",
+    "create": "यात्रा बनाएं",
+    "destination_placeholder": "जैसे गोवा, मनाली, हैदराबाद",
+    "description_placeholder": "अपनी यात्रा योजना बताएं..."
+  },
+  "profile": {
+    "edit": "प्रोफ़ाइल संपादित करें", "language": "भाषा", "settings": "सेटिंग्स",
+    "sign_out": "साइन आउट", "trips_joined": "जुड़ी यात्राएँ",
+    "completed_trips": "पूरी यात्राएँ", "reviews": "समीक्षाएँ", "trust_score": "ट्रस्ट स्कोर"
+  },
+  "common": { "loading": "लोड हो रहा है...", "save": "सेव", "cancel": "रद्द करें", "select_language": "भाषा चुनें" }
+}

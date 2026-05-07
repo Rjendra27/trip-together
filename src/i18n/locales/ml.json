@@ -1,0 +1,36 @@
+{
+  "nav": { "home": "ഹോം", "trips": "യാത്രകൾ", "matches": "മാച്ചുകൾ", "chat": "ചാറ്റ്", "profile": "പ്രൊഫൈൽ" },
+  "home": {
+    "online_count": "{{count}} യാത്രക്കാർ ഓൺലൈൻ",
+    "headline": "ഇനി ഒറ്റക്ക് യാത്ര വേണ്ട",
+    "subhead": "ഒരേ വഴിക്ക് പോകുന്ന വിശ്വസനീയ യാത്രക്കാരുമായി ബന്ധപ്പെടുക.",
+    "cta_find_buddy": "ട്രാവൽ ബഡ്ഡി കണ്ടെത്തുക",
+    "trust_line": "ID പരിശോധിച്ചു · ഫോൺ പരിശോധിച്ചു",
+    "search_placeholder": "എവിടെ പോകണം?",
+    "for_you": "നിങ്ങൾക്കായി",
+    "trending": "ട്രെൻഡിംഗ്",
+    "popular_in_india": "ഇന്ത്യയിൽ പോപ്പുലർ",
+    "see_all": "എല്ലാം കാണുക",
+    "empty_trips": "ഇതുവരെ യാത്രകളില്ല.",
+    "create_trip": "യാത്ര സൃഷ്ടിക്കുക"
+  },
+  "categories": {
+    "adventure": "സാഹസികം", "beach": "ബീച്ച്", "food": "ഭക്ഷണം", "culture": "സംസ്കാരം",
+    "nightlife": "നൈറ്റ്‌ലൈഫ്", "trekking": "ട്രെക്കിംഗ്", "weekend": "വാരാന്ത്യം",
+    "festival": "ഉത്സവം", "temple": "ക്ഷേത്രങ്ങൾ", "budget": "ബജറ്റ്", "group": "ഗ്രൂപ്പ്"
+  },
+  "trip": {
+    "destination": "ലക്ഷ്യം", "start_date": "ആരംഭം", "end_date": "അവസാനം",
+    "min": "കുറവ് (₹)", "max": "കൂടുതൽ (₹)", "spots": "സ്ഥലങ്ങൾ", "trip_type": "തരം",
+    "description": "വിവരണം", "publish": "പ്രസിദ്ധീകരിക്കുക", "publishing": "പ്രസിദ്ധീകരിക്കുന്നു...",
+    "create": "യാത്ര സൃഷ്ടിക്കുക",
+    "destination_placeholder": "ഉദാ. ഗോവ, മനാലി",
+    "description_placeholder": "നിങ്ങളുടെ യാത്രയെക്കുറിച്ച് പറയൂ..."
+  },
+  "profile": {
+    "edit": "എഡിറ്റ്", "language": "ഭാഷ", "settings": "ക്രമീകരണങ്ങൾ",
+    "sign_out": "സൈൻ ഔട്ട്", "trips_joined": "ചേർന്ന യാത്രകൾ",
+    "completed_trips": "പൂർത്തിയായവ", "reviews": "റിവ്യൂകൾ", "trust_score": "ട്രസ്റ്റ് സ്കോർ"
+  },
+  "common": { "loading": "ലോഡ്...", "save": "സേവ്", "cancel": "റദ്ദാക്കുക", "select_language": "ഭാഷ തിരഞ്ഞെടുക്കുക" }
+}
