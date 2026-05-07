@@ -206,7 +206,25 @@ export default function ChatPage() {
           <div ref={messagesEndRef} />
         </div>
 
-        <div className="sticky bottom-20 bg-card border-t border-border p-3">
+        <div className="sticky bottom-20 bg-card border-t border-border p-3 space-y-2">
+          {messages.length === 0 && (
+            <div className="flex gap-2 overflow-x-auto no-scrollbar">
+              {[
+                "Hey! Excited about your trip 👋",
+                "What's your itinerary?",
+                "Want to split costs?",
+                "Are you flexible on dates?",
+              ].map(s => (
+                <button
+                  key={s}
+                  onClick={() => setMessage(s)}
+                  className="shrink-0 text-xs px-3 py-1.5 rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          )}
           <div className="flex gap-2">
             <Input
               placeholder="Type a message..."
