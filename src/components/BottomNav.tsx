@@ -17,10 +17,6 @@ export default function BottomNav() {
     { icon: User, label: t("nav.profile"), path: "/profile" },
   ];
 
-export default function BottomNav() {
-  const location = useLocation();
-  const navigate = useNavigate();
-
   if (location.pathname.startsWith("/auth") || location.pathname.startsWith("/admin")) return null;
 
   return (
