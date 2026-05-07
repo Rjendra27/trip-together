@@ -1,4 +1,4 @@
-import { Search, SlidersHorizontal, Plus, Sparkles, TrendingUp, Loader2 } from "lucide-react";
+import { Search, SlidersHorizontal, Plus, Sparkles, TrendingUp, Loader2, ShieldCheck, Users2, Heart } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -94,12 +94,21 @@ export default function HomePage() {
               <Sparkles className="h-3 w-3" /> 1,247 travelers online
             </span>
           </motion.div>
-          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="font-heading text-3xl font-bold text-primary-foreground mb-2">
-            Find Your Travel Buddy
+          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="font-heading text-3xl sm:text-4xl font-bold text-primary-foreground mb-2 leading-tight">
+            Never travel alone again
           </motion.h1>
-          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="text-primary-foreground/80 text-sm max-w-xs">
-            Connect with travelers heading to the same destination
+          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="text-primary-foreground/85 text-sm max-w-sm mb-4">
+            Match with verified travelers heading the same way. Plan trips, split costs, make memories.
           </motion.p>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="flex flex-col items-center gap-2">
+            <Button variant="gradient" size="lg" className="rounded-full shadow-elevated" onClick={() => navigate("/matches")}>
+              <Heart className="h-4 w-4 mr-1" /> Find Travel Buddy
+            </Button>
+            <div className="flex items-center gap-1.5 text-[11px] text-primary-foreground/80">
+              <ShieldCheck className="h-3.5 w-3.5 text-accent" />
+              <span>ID verified · Phone verified · Trusted Traveler badges</span>
+            </div>
+          </motion.div>
         </div>
       </div>
 
