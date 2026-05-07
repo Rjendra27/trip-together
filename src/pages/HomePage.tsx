@@ -193,8 +193,11 @@ export default function HomePage() {
                   destination={trip.destination}
                   startDate={formatDate(trip.start_date)}
                   endDate={formatDate(trip.end_date)}
+                  startISO={trip.start_date}
                   budget={budget}
                   spotsLeft={spotsLeft}
+                  spotsTotal={trip.spots_needed ?? undefined}
+                  spotsFilled={trip.spots_filled ?? 0}
                   tripType={trip.trip_type || "adventure"}
                   imageUrl={FALLBACK_IMG}
                   creatorName={profile?.display_name || "Traveler"}
