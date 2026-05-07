@@ -1,15 +1,21 @@
 import { Home, Map, Heart, MessageCircle, User } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 
-const navItems = [
-  { icon: Home, label: "Home", path: "/" },
-  { icon: Map, label: "Trips", path: "/trips" },
-  { icon: Heart, label: "Matches", path: "/matches" },
-  { icon: MessageCircle, label: "Chat", path: "/chat" },
-  { icon: User, label: "Profile", path: "/profile" },
-];
+export default function BottomNav() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { t } = useTranslation();
+
+  const navItems = [
+    { icon: Home, label: t("nav.home"), path: "/" },
+    { icon: Map, label: t("nav.trips"), path: "/trips" },
+    { icon: Heart, label: t("nav.matches"), path: "/matches" },
+    { icon: MessageCircle, label: t("nav.chat"), path: "/chat" },
+    { icon: User, label: t("nav.profile"), path: "/profile" },
+  ];
 
 export default function BottomNav() {
   const location = useLocation();
