@@ -1,15 +1,15 @@
-import { Search, SlidersHorizontal, Plus, Sparkles, TrendingUp, Loader2, ShieldCheck, Users2, Heart } from "lucide-react";
+import { Search, SlidersHorizontal, Plus, Sparkles, TrendingUp, Loader2, ShieldCheck, Heart, MapPin } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import TripCard from "@/components/TripCard";
 import heroImage from "@/assets/hero-travel.jpg";
 import { supabase } from "@/integrations/supabase/client";
-
-const FALLBACK_IMG = "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=600&h=400&fit=crop";
+import { POPULAR_DESTINATIONS, imageForDestination } from "@/lib/destinations";
 
 interface DbTrip {
   id: string;
@@ -26,21 +26,17 @@ interface DbTrip {
 }
 
 const formatDate = (d: string) =>
-  new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  new Date(d).toLocaleDateString("en-IN", { month: "short", day: "numeric" });
 
-const CATEGORIES = [
-  { emoji: "🏔️", label: "Adventure" },
-  { emoji: "🏖️", label: "Beach" },
-  { emoji: "🍜", label: "Food" },
-  { emoji: "🎭", label: "Culture" },
-  { emoji: "🎉", label: "Nightlife" },
-  { emoji: "🥾", label: "Trekking" },
-];
-
-const RECOMMENDED = [
-  { destination: "Bali, Indonesia", image: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=300&h=200&fit=crop", matchPercent: 95 },
-  { destination: "Tokyo, Japan", image: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=300&h=200&fit=crop", matchPercent: 88 },
-  { destination: "Santorini, Greece", image: "https://images.unsplash.com/photo-1613395877344-13d4a8e0d49e?w=300&h=200&fit=crop", matchPercent: 82 },
+const CATEGORY_KEYS = [
+  { emoji: "🏔️", key: "adventure" },
+  { emoji: "🏖️", key: "beach" },
+  { emoji: "🥾", key: "trekking" },
+  { emoji: "🪔", key: "festival" },
+  { emoji: "🛕", key: "temple" },
+  { emoji: "🎒", key: "weekend" },
+  { emoji: "🍜", key: "food" },
+  { emoji: "💸", key: "budget" },
 ];
 
 export default function HomePage() {
