@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
+import LanguageSelector from "@/components/LanguageSelector";
 import heroImage from "@/assets/hero-travel.jpg";
 
 export default function AuthPage() {
