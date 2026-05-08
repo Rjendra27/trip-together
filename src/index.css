@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Manrope:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,76 +6,84 @@
 
 @layer base {
   :root {
-    --background: 210 20% 98%;
-    --foreground: 210 40% 10%;
+    /* Warm sunset palette — Airbnb-meets-Tinder, India-first */
+    --background: 36 38% 97%;        /* #faf8f5 cream */
+    --foreground: 20 25% 14%;        /* warm near-black */
 
     --card: 0 0% 100%;
-    --card-foreground: 210 40% 10%;
+    --card-foreground: 20 25% 14%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 210 40% 10%;
+    --popover-foreground: 20 25% 14%;
 
-    --primary: 210 100% 50%;
+    --primary: 13 80% 57%;            /* coral / terracotta */
     --primary-foreground: 0 0% 100%;
+    --primary-glow: 22 95% 64%;       /* warm sunset orange */
 
-    --secondary: 210 20% 95%;
-    --secondary-foreground: 210 40% 20%;
+    --secondary: 34 30% 93%;          /* warm sand */
+    --secondary-foreground: 20 25% 20%;
 
-    --muted: 210 15% 93%;
-    --muted-foreground: 210 10% 50%;
+    --muted: 34 25% 92%;
+    --muted-foreground: 20 10% 45%;
 
-    --accent: 174 60% 45%;
+    --accent: 344 60% 52%;            /* deep berry */
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 75% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 210 20% 90%;
-    --input: 210 20% 90%;
-    --ring: 210 100% 50%;
+    --success: 152 55% 42%;
+    --success-foreground: 0 0% 100%;
 
-    --radius: 0.75rem;
+    --border: 30 22% 88%;
+    --input: 30 22% 90%;
+    --ring: 13 80% 57%;
 
-    --gradient-primary: linear-gradient(135deg, hsl(210, 100%, 50%), hsl(174, 60%, 45%));
-    --gradient-hero: linear-gradient(180deg, hsl(210, 100%, 96%), hsl(210, 20%, 98%));
-    --gradient-card: linear-gradient(135deg, hsl(0, 0%, 100%), hsl(210, 20%, 98%));
+    --radius: 1rem;
 
-    --shadow-card: 0 2px 12px -2px hsl(210 20% 50% / 0.08);
-    --shadow-elevated: 0 8px 30px -4px hsl(210 20% 50% / 0.12);
+    --gradient-primary: linear-gradient(135deg, hsl(13 80% 57%), hsl(344 60% 52%));
+    --gradient-sunset: linear-gradient(135deg, hsl(22 95% 64%), hsl(13 80% 57%) 50%, hsl(344 60% 52%));
+    --gradient-hero: linear-gradient(180deg, hsl(36 38% 97% / 0), hsl(36 38% 97%));
+    --gradient-card: linear-gradient(135deg, hsl(0 0% 100%), hsl(36 38% 98%));
 
-    --font-heading: 'Sora', sans-serif;
-    --font-body: 'Manrope', sans-serif;
+    --shadow-card: 0 2px 14px -4px hsl(13 40% 30% / 0.08);
+    --shadow-elevated: 0 18px 40px -12px hsl(13 60% 30% / 0.22);
+    --shadow-glow: 0 10px 30px -8px hsl(13 80% 57% / 0.45);
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --font-heading: 'Space Grotesk', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+
+    --sidebar-background: 36 38% 97%;
+    --sidebar-foreground: 20 20% 25%;
+    --sidebar-primary: 13 80% 57%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 34 30% 93%;
+    --sidebar-accent-foreground: 20 25% 20%;
+    --sidebar-border: 30 22% 88%;
+    --sidebar-ring: 13 80% 57%;
   }
 
   .dark {
-    --background: 210 40% 6%;
-    --foreground: 210 20% 95%;
-    --card: 210 35% 9%;
-    --card-foreground: 210 20% 95%;
-    --popover: 210 35% 9%;
-    --popover-foreground: 210 20% 95%;
-    --primary: 210 100% 55%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 210 30% 15%;
-    --secondary-foreground: 210 20% 90%;
-    --muted: 210 25% 14%;
-    --muted-foreground: 210 15% 55%;
-    --accent: 174 60% 45%;
+    --background: 20 18% 8%;
+    --foreground: 36 30% 95%;
+    --card: 20 18% 11%;
+    --card-foreground: 36 30% 95%;
+    --popover: 20 18% 11%;
+    --popover-foreground: 36 30% 95%;
+    --primary: 13 85% 62%;
+    --primary-foreground: 20 18% 8%;
+    --primary-glow: 22 95% 64%;
+    --secondary: 20 15% 16%;
+    --secondary-foreground: 36 30% 92%;
+    --muted: 20 12% 15%;
+    --muted-foreground: 30 10% 60%;
+    --accent: 344 70% 60%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 210 30% 18%;
-    --input: 210 30% 18%;
-    --ring: 210 100% 55%;
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 20 12% 20%;
+    --input: 20 12% 20%;
+    --ring: 13 85% 62%;
   }
 }
 
@@ -83,12 +91,18 @@
   * {
     @apply border-border;
   }
+  html, body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-body);
+    font-feature-settings: "ss01", "cv11";
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
+    letter-spacing: -0.01em;
   }
 }
 
@@ -97,16 +111,28 @@
     @apply bg-clip-text text-transparent;
     background-image: var(--gradient-primary);
   }
-  .bg-gradient-primary {
-    background-image: var(--gradient-primary);
+  .bg-gradient-primary { background-image: var(--gradient-primary); }
+  .bg-gradient-sunset { background-image: var(--gradient-sunset); }
+  .bg-gradient-hero { background-image: var(--gradient-hero); }
+  .bg-gradient-card { background-image: var(--gradient-card); }
+  .shadow-card { box-shadow: var(--shadow-card); }
+  .shadow-elevated { box-shadow: var(--shadow-elevated); }
+  .shadow-glow { box-shadow: var(--shadow-glow); }
+
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
   }
-  .bg-gradient-hero {
-    background-image: var(--gradient-hero);
-  }
-  .shadow-card {
-    box-shadow: var(--shadow-card);
-  }
-  .shadow-elevated {
-    box-shadow: var(--shadow-elevated);
+
+  /* Soft chat surface inspired by WhatsApp */
+  .chat-surface {
+    background-color: hsl(36 38% 96%);
+    background-image:
+      radial-gradient(hsl(20 15% 88% / 0.5) 1px, transparent 1px),
+      radial-gradient(hsl(20 15% 92% / 0.5) 1px, transparent 1px);
+    background-size: 24px 24px, 24px 24px;
+    background-position: 0 0, 12px 12px;
   }
 }
