@@ -1,15 +1,16 @@
-import { Search, Plus, Loader2 } from "lucide-react";
+import { Search, Plus, Loader2, Compass } from "lucide-react";
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import TripCard from "@/components/TripCard";
 import { supabase } from "@/integrations/supabase/client";
+import { imageForDestination } from "@/lib/destinations";
 import { toast } from "sonner";
 
 const FILTERS = ["All", "adventure", "chill", "culture", "trekking", "food", "beach"];
-const FALLBACK_IMG = "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=600&h=400&fit=crop";
 
 interface DbTrip {
   id: string;
@@ -125,15 +126,25 @@ export default function TripsPage() {
       <div className="p-4 grid gap-4">
         {loading ? (
           <div className="flex justify-center py-16">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
           </div>
         ) : filteredTrips.length === 0 ? (
-          <div className="text-center text-muted-foreground py-16 space-y-3">
-            <p>No trips available yet. Be the first to create one.</p>
-            <Button variant="gradient" size="sm" className="rounded-xl" onClick={() => navigate("/trips/create")}>
-              <Plus className="h-4 w-4 mr-1" /> Create Trip
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col items-center text-center py-20 px-6"
+          >
+            <div className="h-20 w-20 rounded-3xl bg-gradient-primary flex items-center justify-center shadow-glow mb-5">
+              <Compass className="h-9 w-9 text-primary-foreground" />
+            </div>
+            <h3 className="font-heading text-lg font-bold mb-1">No trips here yet</h3>
+            <p className="text-sm text-muted-foreground max-w-xs mb-5">
+              Be the first to plan a trip and find travel buddies who match your vibe.
+            </p>
+            <Button variant="gradient" className="rounded-full px-6" onClick={() => navigate("/trips/create")}>
+              <Plus className="h-4 w-4 mr-1" /> Create your first trip
             </Button>
-          </div>
+          </motion.div>
         ) : (
           filteredTrips.map((trip) => {
             const profile = profiles[trip.user_id];
@@ -154,7 +165,7 @@ export default function TripsPage() {
                 spotsTotal={trip.spots_needed ?? undefined}
                 spotsFilled={trip.spots_filled ?? 0}
                 tripType={trip.trip_type || "adventure"}
-                imageUrl={FALLBACK_IMG}
+                imageUrl={imageForDestination(trip.destination)}
                 creatorName={profile?.display_name || "Traveler"}
                 creatorAvatar={profile?.avatar_url || "https://api.dicebear.com/7.x/avataaars/svg?seed=" + trip.user_id}
               />
