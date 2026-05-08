@@ -20,8 +20,8 @@ export default function BottomNav() {
   if (location.pathname.startsWith("/auth") || location.pathname.startsWith("/admin")) return null;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card/95 backdrop-blur-lg safe-area-bottom">
-      <div className="mx-auto flex max-w-lg items-center justify-around py-1.5">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 safe-area-bottom px-3 pb-3 pt-2 pointer-events-none">
+      <div className="pointer-events-auto mx-auto flex max-w-lg items-center justify-around rounded-full border border-border/60 bg-card/85 px-2 py-1.5 shadow-elevated backdrop-blur-xl">
         {navItems.map(({ icon: Icon, label, path }) => {
           const active = location.pathname === path;
           return (
@@ -29,19 +29,22 @@ export default function BottomNav() {
               key={path}
               onClick={() => navigate(path)}
               className={cn(
-                "relative flex flex-col items-center gap-0.5 rounded-xl px-3 py-1.5 transition-all",
-                active ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                "relative flex items-center gap-1.5 rounded-full px-3 py-2 transition-colors",
+                active ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground"
               )}
+              aria-label={label}
             >
               {active && (
-                <motion.div
-                  layoutId="nav-indicator"
-                  className="absolute -top-1.5 h-0.5 w-6 rounded-full bg-primary"
-                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                <motion.span
+                  layoutId="nav-pill"
+                  className="absolute inset-0 -z-0 rounded-full bg-gradient-primary shadow-glow"
+                  transition={{ type: "spring", stiffness: 500, damping: 32 }}
                 />
               )}
-              <Icon className={cn("h-5 w-5 transition-transform", active && "scale-110")} strokeWidth={active ? 2.5 : 2} />
-              <span className="text-[10px] font-medium">{label}</span>
+              <span className="relative z-10 flex items-center gap-1.5">
+                <Icon className={cn("h-5 w-5", active && "scale-110")} strokeWidth={active ? 2.4 : 2} />
+                {active && <span className="text-[11px] font-semibold">{label}</span>}
+              </span>
             </button>
           );
         })}
