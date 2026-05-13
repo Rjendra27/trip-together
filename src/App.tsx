@@ -9,6 +9,8 @@ import SOSButton from "@/components/SOSButton";
 import HomePage from "./pages/HomePage";
 import TripsPage from "./pages/TripsPage";
 import CreateTripPage from "./pages/CreateTripPage";
+import TripDetailPage from "./pages/TripDetailPage";
+import MyTripsPage from "./pages/MyTripsPage";
 import MatchesPage from "./pages/MatchesPage";
 import ChatPage from "./pages/ChatPage";
 import ProfilePage from "./pages/ProfilePage";
@@ -35,6 +37,8 @@ const App = () => (
             <Route path="/" element={<HomePage />} />
             <Route path="/trips" element={<TripsPage />} />
             <Route path="/trips/create" element={<CreateTripPage />} />
+            <Route path="/my-trips" element={<MyTripsPage />} />
+            <Route path="/trips/:id" element={<TripDetailPage />} />
             <Route path="/matches" element={<MatchesPage />} />
             <Route path="/chat" element={<ChatPage />} />
             <Route path="/profile" element={<ProfilePage />} />

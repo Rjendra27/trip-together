@@ -1,4 +1,4 @@
-import { Search, Plus, Loader2, Compass } from "lucide-react";
+import { Search, Plus, Loader2, Compass, Bookmark } from "lucide-react";
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -96,9 +96,14 @@ export default function TripsPage() {
       <div className="sticky top-0 z-30 bg-card/95 backdrop-blur-lg px-4 py-3 border-b border-border space-y-3">
         <div className="flex items-center justify-between">
           <h1 className="font-heading text-lg font-semibold">Explore Trips</h1>
-          <Button variant="gradient" size="sm" className="rounded-xl" onClick={() => navigate("/trips/create")}>
-            <Plus className="h-4 w-4 mr-1" /> Create
-          </Button>
+          <div className="flex items-center gap-1.5">
+            <Button variant="ghost" size="sm" className="rounded-xl" onClick={() => navigate("/my-trips")}>
+              <Bookmark className="h-4 w-4 mr-1" /> My Trips
+            </Button>
+            <Button variant="gradient" size="sm" className="rounded-xl" onClick={() => navigate("/trips/create")}>
+              <Plus className="h-4 w-4 mr-1" /> Create
+            </Button>
+          </div>
         </div>
         <div className="flex gap-2 items-center bg-secondary rounded-xl p-1.5">
           <Search className="h-4 w-4 text-muted-foreground ml-1.5" />
@@ -156,6 +161,7 @@ export default function TripsPage() {
             return (
               <TripCard
                 key={trip.id}
+                onClick={() => navigate(`/trips/${trip.id}`)}
                 destination={trip.destination}
                 startDate={formatDate(trip.start_date)}
                 endDate={formatDate(trip.end_date)}
