@@ -156,6 +156,7 @@ export default function TripsPage() {
             return (
               <TripCard
                 key={trip.id}
+                onClick={() => navigate(`/trips/${trip.id}`)}
                 destination={trip.destination}
                 startDate={formatDate(trip.start_date)}
                 endDate={formatDate(trip.end_date)}
