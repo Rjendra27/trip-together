@@ -17,6 +17,8 @@ import ProfilePage from "./pages/ProfilePage";
 import AuthPage from "./pages/AuthPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import NotificationsPage from "./pages/NotificationsPage";
+import PrivacySafetyPage from "./pages/PrivacySafetyPage";
+import SettingsPage from "./pages/SettingsPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminTrips from "./pages/admin/AdminTrips";
