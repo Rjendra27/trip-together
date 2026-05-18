@@ -1,8 +1,15 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Bell, Heart, MessageCircle, Plane, Check, Trash2 } from "lucide-react";
+import { ArrowLeft, Bell, Heart, MessageCircle, Plane, Check, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+
+const PREFS_KEY = "tripmate_notif_prefs";
+type Prefs = { match_alerts: boolean; message_alerts: boolean; trip_alerts: boolean };
+const DEFAULT_PREFS: Prefs = { match_alerts: true, message_alerts: true, trip_alerts: true };
 
 interface Notification {
   id: string;
