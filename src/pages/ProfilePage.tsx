@@ -20,8 +20,8 @@ import { toast } from "sonner";
 
 const MENU_ITEMS = [
   { icon: Bell, label: "Notifications", path: "/notifications" },
-  { icon: Lock, label: "Privacy & Safety", path: "#" },
-  { icon: Settings, label: "Settings", path: "#" },
+  { icon: Lock, label: "Privacy & Safety", path: "/privacy" },
+  { icon: Settings, label: "Settings", path: "/settings" },
 ];
 
 interface Profile {
