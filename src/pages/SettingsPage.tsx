@@ -98,6 +98,8 @@ export default function SettingsPage() {
         <Button variant="outline" disabled={busy} onClick={handleSignOut} className="w-full rounded-xl h-11 gap-2 text-destructive border-destructive/20 hover:bg-destructive hover:text-destructive-foreground">
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <><LogOut className="h-4 w-4" /> Sign Out</>}
         </Button>
+
+        <p className="text-center text-xs text-muted-foreground pt-2">NeverASolo · v1.0.0</p>
       </div>
     </div>
   );

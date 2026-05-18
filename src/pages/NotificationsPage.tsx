@@ -1,8 +1,15 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Bell, Heart, MessageCircle, Plane, Check, Trash2 } from "lucide-react";
+import { ArrowLeft, Bell, Heart, MessageCircle, Plane, Check, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+
+const PREFS_KEY = "tripmate_notif_prefs";
+type Prefs = { match_alerts: boolean; message_alerts: boolean; trip_alerts: boolean };
+const DEFAULT_PREFS: Prefs = { match_alerts: true, message_alerts: true, trip_alerts: true };
 
 interface Notification {
   id: string;
@@ -26,18 +33,41 @@ const iconMap = { match: Heart, message: MessageCircle, trip: Plane };
 const colorMap = { match: "text-pink-500 bg-pink-500/10", message: "text-primary bg-primary/10", trip: "text-accent bg-accent/10" };
 
 export default function NotificationsPage() {
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState(SAMPLE_NOTIFICATIONS);
+  const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS);
+
+  useEffect(() => {
+    const raw = localStorage.getItem(PREFS_KEY);
+    if (raw) { try { setPrefs({ ...DEFAULT_PREFS, ...JSON.parse(raw) }); } catch {} }
+  }, []);
+
+  const updatePref = (key: keyof Prefs, value: boolean) => {
+    const next = { ...prefs, [key]: value };
+    setPrefs(next);
+    localStorage.setItem(PREFS_KEY, JSON.stringify(next));
+    toast.success("Preference saved");
+  };
 
   const markAllRead = () => setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   const clearAll = () => setNotifications([]);
 
+  const prefItems: { key: keyof Prefs; label: string; desc: string }[] = [
+    { key: "match_alerts", label: "Match alerts", desc: "When someone matches with you" },
+    { key: "message_alerts", label: "Message alerts", desc: "New chat messages" },
+    { key: "trip_alerts", label: "Trip update alerts", desc: "Changes to trips you've joined" },
+  ];
+
   return (
     <div className="min-h-screen pb-24 bg-background">
       <div className="sticky top-0 z-30 bg-card/95 backdrop-blur-lg px-4 py-3 border-b border-border">
-        <div className="flex items-center justify-between">
-          <h1 className="font-heading text-lg font-semibold flex items-center gap-2">
-            <Bell className="h-5 w-5" /> Notifications
-          </h1>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" onClick={() => navigate(-1)}><ArrowLeft className="h-5 w-5" /></Button>
+            <h1 className="font-heading text-lg font-semibold flex items-center gap-2">
+              <Bell className="h-5 w-5" /> Notifications
+            </h1>
+          </div>
           <div className="flex gap-1">
             <Button variant="ghost" size="sm" onClick={markAllRead}><Check className="h-3.5 w-3.5 mr-1" />Read all</Button>
             <Button variant="ghost" size="sm" onClick={clearAll}><Trash2 className="h-3.5 w-3.5" /></Button>
@@ -45,6 +75,21 @@ export default function NotificationsPage() {
         </div>
       </div>
 
+      <div className="p-4">
+        <div className="rounded-2xl bg-card shadow-card divide-y divide-border">
+          {prefItems.map(it => (
+            <div key={it.key} className="flex items-center gap-3 p-4">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium">{it.label}</p>
+                <p className="text-xs text-muted-foreground">{it.desc}</p>
+              </div>
+              <Switch checked={prefs[it.key]} onCheckedChange={(v) => updatePref(it.key, v)} />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <h2 className="px-4 pt-2 pb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Recent</h2>
       <div className="divide-y divide-border">
         {notifications.map((n, i) => {
           const Icon = iconMap[n.type];
