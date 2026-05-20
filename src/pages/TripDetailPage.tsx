@@ -66,10 +66,46 @@ export default function TripDetailPage() {
           .eq("trip_id", id)
           .maybeSingle();
         setBookmarked(!!bm);
+
+        const { data: jr } = await supabase
+          .from("trip_join_requests" as any)
+          .select("status")
+          .eq("trip_id", id)
+          .eq("requester_id", user.id)
+          .maybeSingle();
+        if (jr) setJoinStatus(((jr as any).status) || "none");
       }
       setLoading(false);
     })();
   }, [id, navigate, user]);
+
+  const requestToJoin = async () => {
+    if (!user) {
+      toast.info("Sign in to request");
+      navigate("/auth");
+      return;
+    }
+    if (!trip) return;
+    if (trip.user_id === user.id) return;
+    setJoinBusy(true);
+    const { error } = await supabase.from("trip_join_requests" as any).insert({
+      trip_id: trip.id,
+      requester_id: user.id,
+      trip_owner_id: trip.user_id,
+    });
+    setJoinBusy(false);
+    if (error) {
+      if (error.code === "23505") {
+        toast.info("You've already requested to join this trip");
+        setJoinStatus("pending");
+      } else {
+        toast.error(error.message);
+      }
+      return;
+    }
+    setJoinStatus("pending");
+    toast.success("Request sent! The host will be notified.");
+  };
 
   const toggleBookmark = async () => {
     if (!user) {
