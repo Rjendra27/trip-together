@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Bookmark, BookmarkCheck, Calendar, Users, IndianRupee, ShieldCheck, Loader2, Trash2, Copy, Pencil } from "lucide-react";
+import { ArrowLeft, Bookmark, BookmarkCheck, Calendar, Users, IndianRupee, ShieldCheck, Loader2, Trash2, Copy, Pencil, Clock, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import AIRecommendations from "@/components/AIRecommendations";
+import JoinRequestsPanel from "@/components/JoinRequestsPanel";
 import { imageForDestination } from "@/lib/destinations";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -37,6 +38,8 @@ export default function TripDetailPage() {
   const [loading, setLoading] = useState(true);
   const [bookmarked, setBookmarked] = useState(false);
   const [bookmarkBusy, setBookmarkBusy] = useState(false);
+  const [joinStatus, setJoinStatus] = useState<"none" | "pending" | "accepted" | "rejected">("none");
+  const [joinBusy, setJoinBusy] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -63,10 +66,46 @@ export default function TripDetailPage() {
           .eq("trip_id", id)
           .maybeSingle();
         setBookmarked(!!bm);
+
+        const { data: jr } = await supabase
+          .from("trip_join_requests" as any)
+          .select("status")
+          .eq("trip_id", id)
+          .eq("requester_id", user.id)
+          .maybeSingle();
+        if (jr) setJoinStatus(((jr as any).status) || "none");
       }
       setLoading(false);
     })();
   }, [id, navigate, user]);
+
+  const requestToJoin = async () => {
+    if (!user) {
+      toast.info("Sign in to request");
+      navigate("/auth");
+      return;
+    }
+    if (!trip) return;
+    if (trip.user_id === user.id) return;
+    setJoinBusy(true);
+    const { error } = await supabase.from("trip_join_requests" as any).insert({
+      trip_id: trip.id,
+      requester_id: user.id,
+      trip_owner_id: trip.user_id,
+    });
+    setJoinBusy(false);
+    if (error) {
+      if (error.code === "23505") {
+        toast.info("You've already requested to join this trip");
+        setJoinStatus("pending");
+      } else {
+        toast.error(error.message);
+      }
+      return;
+    }
+    setJoinStatus("pending");
+    toast.success("Request sent! The host will be notified.");
+  };
 
   const toggleBookmark = async () => {
     if (!user) {
@@ -206,9 +245,25 @@ export default function TripDetailPage() {
           )}
 
           <div className="flex gap-2 mt-4">
-            {!isOwner && (
-              <Button variant="hero" className="flex-1 rounded-xl" onClick={() => navigate("/chat")}>
-                Request to Join
+            {!isOwner && joinStatus === "none" && (
+              <Button variant="hero" className="flex-1 rounded-xl" onClick={requestToJoin} disabled={joinBusy || spotsLeft === 0}>
+                {joinBusy ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                {spotsLeft === 0 ? "Trip full" : "Request to Join"}
+              </Button>
+            )}
+            {!isOwner && joinStatus === "pending" && (
+              <Button variant="outline" className="flex-1 rounded-xl" disabled>
+                <Clock className="h-4 w-4 mr-1.5" /> Request pending
+              </Button>
+            )}
+            {!isOwner && joinStatus === "accepted" && (
+              <Button variant="outline" className="flex-1 rounded-xl border-green-500/50 text-green-600 dark:text-green-400" disabled>
+                <CheckCircle2 className="h-4 w-4 mr-1.5" /> You're in
+              </Button>
+            )}
+            {!isOwner && joinStatus === "rejected" && (
+              <Button variant="outline" className="flex-1 rounded-xl" disabled>
+                Request declined
               </Button>
             )}
             {!isOwner && (
@@ -223,6 +278,9 @@ export default function TripDetailPage() {
             )}
           </div>
         </div>
+
+        {isOwner && <JoinRequestsPanel tripId={trip.id} />}
+
 
         <AIRecommendations
           destination={trip.destination}

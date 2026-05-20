@@ -331,6 +331,39 @@ export type Database = {
         }
         Relationships: []
       }
+      trip_join_requests: {
+        Row: {
+          created_at: string
+          id: string
+          message: string | null
+          requester_id: string
+          status: Database["public"]["Enums"]["join_request_status"]
+          trip_id: string
+          trip_owner_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          requester_id: string
+          status?: Database["public"]["Enums"]["join_request_status"]
+          trip_id: string
+          trip_owner_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          requester_id?: string
+          status?: Database["public"]["Enums"]["join_request_status"]
+          trip_id?: string
+          trip_owner_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       trips: {
         Row: {
           budget_max: number | null
@@ -449,6 +482,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
+      join_request_status: "pending" | "accepted" | "rejected"
       match_status: "pending" | "accepted" | "rejected"
       report_status: "pending" | "reviewing" | "resolved" | "dismissed"
       trip_status: "open" | "full" | "completed" | "cancelled"
@@ -580,6 +614,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],
+      join_request_status: ["pending", "accepted", "rejected"],
       match_status: ["pending", "accepted", "rejected"],
       report_status: ["pending", "reviewing", "resolved", "dismissed"],
       trip_status: ["open", "full", "completed", "cancelled"],
