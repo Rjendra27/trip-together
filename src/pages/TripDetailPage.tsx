@@ -245,9 +245,25 @@ export default function TripDetailPage() {
           )}
 
           <div className="flex gap-2 mt-4">
-            {!isOwner && (
-              <Button variant="hero" className="flex-1 rounded-xl" onClick={() => navigate("/chat")}>
-                Request to Join
+            {!isOwner && joinStatus === "none" && (
+              <Button variant="hero" className="flex-1 rounded-xl" onClick={requestToJoin} disabled={joinBusy || spotsLeft === 0}>
+                {joinBusy ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                {spotsLeft === 0 ? "Trip full" : "Request to Join"}
+              </Button>
+            )}
+            {!isOwner && joinStatus === "pending" && (
+              <Button variant="outline" className="flex-1 rounded-xl" disabled>
+                <Clock className="h-4 w-4 mr-1.5" /> Request pending
+              </Button>
+            )}
+            {!isOwner && joinStatus === "accepted" && (
+              <Button variant="outline" className="flex-1 rounded-xl border-green-500/50 text-green-600 dark:text-green-400" disabled>
+                <CheckCircle2 className="h-4 w-4 mr-1.5" /> You're in
+              </Button>
+            )}
+            {!isOwner && joinStatus === "rejected" && (
+              <Button variant="outline" className="flex-1 rounded-xl" disabled>
+                Request declined
               </Button>
             )}
             {!isOwner && (
@@ -262,6 +278,9 @@ export default function TripDetailPage() {
             )}
           </div>
         </div>
+
+        {isOwner && <JoinRequestsPanel tripId={trip.id} />}
+
 
         <AIRecommendations
           destination={trip.destination}
