@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Bookmark, BookmarkCheck, Calendar, Users, IndianRupee, ShieldCheck, Loader2, Trash2, Copy, Pencil } from "lucide-react";
+import { ArrowLeft, Bookmark, BookmarkCheck, Calendar, Users, IndianRupee, ShieldCheck, Loader2, Trash2, Copy, Pencil, Clock, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import AIRecommendations from "@/components/AIRecommendations";
+import JoinRequestsPanel from "@/components/JoinRequestsPanel";
 import { imageForDestination } from "@/lib/destinations";
 import { useAuth } from "@/contexts/AuthContext";
 
