@@ -38,6 +38,8 @@ export default function TripDetailPage() {
   const [loading, setLoading] = useState(true);
   const [bookmarked, setBookmarked] = useState(false);
   const [bookmarkBusy, setBookmarkBusy] = useState(false);
+  const [joinStatus, setJoinStatus] = useState<"none" | "pending" | "accepted" | "rejected">("none");
+  const [joinBusy, setJoinBusy] = useState(false);
 
   useEffect(() => {
     if (!id) return;
