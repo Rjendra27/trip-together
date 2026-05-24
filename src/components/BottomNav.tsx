@@ -1,4 +1,4 @@
-import { Home, Map, Heart, MessageCircle, User } from "lucide-react";
+import { Home, Map, Bell, MessageCircle, User } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
@@ -14,9 +14,9 @@ export default function BottomNav() {
   const navItems = [
     { icon: Home, label: t("nav.home"), path: "/", badge: 0 },
     { icon: Map, label: t("nav.trips"), path: "/trips", badge: 0 },
-    { icon: Heart, label: t("nav.matches"), path: "/matches", badge: 0 },
+    { icon: Bell, label: t("nav.notifications", "Notifications"), path: "/notifications", badge: unread },
     { icon: MessageCircle, label: t("nav.chat"), path: "/chat", badge: 0 },
-    { icon: User, label: t("nav.profile"), path: "/profile", badge: unread },
+    { icon: User, label: t("nav.profile"), path: "/profile", badge: 0 },
   ];
 
   if (location.pathname.startsWith("/auth") || location.pathname.startsWith("/admin")) return null;

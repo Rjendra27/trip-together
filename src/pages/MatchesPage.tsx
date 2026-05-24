@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   MessageCircle, Plane, Bookmark, Shield, BadgeCheck, Phone,
-  Sparkles, MoreVertical, Flag, UserX, Search, Loader2, Star
+  Sparkles, MoreVertical, Flag, UserX, Search, Loader2, Star, Check, X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -52,6 +52,13 @@ interface EnrichedMatch {
   phoneVerified: boolean;
   hasMessages: boolean;
   hasTripTogether: boolean;
+  pendingJoinRequest?: {
+    id: string;
+    trip_id: string;
+    destination: string;
+    message: string | null;
+    created_at: string;
+  } | null;
 }
 
 const STATUS_STYLES: Record<MatchStatus, string> = {
@@ -106,14 +113,23 @@ export default function MatchesPage() {
       new Set(matchRows.map(m => (m.user_id === user.id ? m.matched_user_id : m.user_id)))
     );
 
-    const [{ data: profiles }, { data: contacts }, { data: myProfile }, { data: msgs }, { data: trips }] =
-      await Promise.all([
-        supabase.from("profiles").select("user_id,display_name,avatar_url,bio,age,location,interests,is_available,verification_badge,id_verified").in("user_id", peerIds),
-        supabase.from("user_contacts").select("user_id,phone_verified").in("user_id", peerIds),
-        supabase.from("profiles").select("interests").eq("user_id", user.id).maybeSingle(),
-        supabase.from("messages").select("sender_id,receiver_id").or(`and(sender_id.eq.${user.id},receiver_id.in.(${peerIds.join(",")})),and(receiver_id.eq.${user.id},sender_id.in.(${peerIds.join(",")}))`),
-        supabase.from("trips").select("user_id,completed,end_date").in("user_id", peerIds),
-      ]);
+    const [
+      { data: profiles },
+      { data: contacts },
+      { data: myProfile },
+      { data: msgs },
+      { data: trips },
+      { data: joinRequests },
+      { data: myTrips }
+    ] = await Promise.all([
+      supabase.from("profiles").select("user_id,display_name,avatar_url,bio,age,location,interests,is_available,verification_badge,id_verified").in("user_id", peerIds),
+      supabase.from("user_contacts").select("user_id,phone_verified").in("user_id", peerIds),
+      supabase.from("profiles").select("interests").eq("user_id", user.id).maybeSingle(),
+      supabase.from("messages").select("sender_id,receiver_id").or(`and(sender_id.eq.${user.id},receiver_id.in.(${peerIds.join(",")})),and(receiver_id.eq.${user.id},sender_id.in.(${peerIds.join(",")}))`),
+      supabase.from("trips").select("user_id,completed,end_date").in("user_id", peerIds),
+      supabase.from("trip_join_requests").select("*").eq("trip_owner_id", user.id).eq("status", "pending"),
+      supabase.from("trips").select("id,destination").eq("user_id", user.id)
+    ]);
 
     const myInterests: string[] = (myProfile?.interests as string[]) || [];
     const phoneMap = new Map((contacts || []).map((c: any) => [c.user_id, !!c.phone_verified]));
@@ -127,6 +143,8 @@ export default function MatchesPage() {
       if (!tripsByUser.has(t.user_id)) tripsByUser.set(t.user_id, []);
       tripsByUser.get(t.user_id)!.push(t);
     });
+
+    const tripMap = new Map((myTrips || []).map(t => [t.id, t.destination]));
 
     const enriched: EnrichedMatch[] = matchRows.map(m => {
       const peerId = m.user_id === user.id ? m.matched_user_id : m.user_id;
@@ -149,6 +167,15 @@ export default function MatchesPage() {
         uiStatus = "Planning Trip";
       }
 
+      const matchedRequest = (joinRequests || []).find(r => r.requester_id === peerId);
+      const pendingJoinRequest = matchedRequest ? {
+        id: matchedRequest.id,
+        trip_id: matchedRequest.trip_id,
+        destination: tripMap.get(matchedRequest.trip_id) || "your trip",
+        message: matchedRequest.message,
+        created_at: matchedRequest.created_at,
+      } : null;
+
       return {
         match: m as MatchRow,
         peerId,
@@ -159,6 +186,7 @@ export default function MatchesPage() {
         phoneVerified: phoneMap.get(peerId) === true,
         hasMessages,
         hasTripTogether: hasUpcoming,
+        pendingJoinRequest,
       };
     });
 
@@ -174,9 +202,40 @@ export default function MatchesPage() {
       .channel("matches-live")
       .on("postgres_changes", { event: "*", schema: "public", table: "matches" }, () => fetchMatches())
       .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, () => fetchMatches())
+      .on("postgres_changes", { event: "*", schema: "public", table: "trip_join_requests" }, () => fetchMatches())
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [user, fetchMatches]);
+
+  const handleAcceptRequest = async (requestId: string) => {
+    const { error } = await supabase
+      .from("trip_join_requests")
+      .update({ status: "accepted" as any })
+      .eq("id", requestId);
+
+    if (error) {
+      toast({ title: "Could not accept request", description: error.message, variant: "destructive" });
+      return;
+    }
+
+    toast({ title: "Request accepted! 🎉", description: "They have been added to your trip." });
+    fetchMatches();
+  };
+
+  const handleDeclineRequest = async (requestId: string) => {
+    const { error } = await supabase
+      .from("trip_join_requests")
+      .update({ status: "rejected" as any })
+      .eq("id", requestId);
+
+    if (error) {
+      toast({ title: "Could not decline request", description: error.message, variant: "destructive" });
+      return;
+    }
+
+    toast({ title: "Request declined", description: "The trip request has been rejected." });
+    fetchMatches();
+  };
 
   const filtered = useMemo(() => {
     if (!search.trim()) return matches;
@@ -284,6 +343,8 @@ export default function MatchesPage() {
                   onUnmatch={() => handleUnmatch(m)}
                   onReport={() => setReportFor({ name: m.profile?.display_name || "User", userId: m.peerId })}
                   onBlock={() => handleBlock(m)}
+                  onAcceptRequest={() => handleAcceptRequest(m.pendingJoinRequest!.id)}
+                  onDeclineRequest={() => handleDeclineRequest(m.pendingJoinRequest!.id)}
                 />
               ))}
             </AnimatePresence>
@@ -317,7 +378,7 @@ function EmptyState({ title, subtitle, cta }: { title: string; subtitle: string;
 }
 
 function MatchCard({
-  m, saved, onMessage, onInvite, onSave, onUnmatch, onReport, onBlock,
+  m, saved, onMessage, onInvite, onSave, onUnmatch, onReport, onBlock, onAcceptRequest, onDeclineRequest,
 }: {
   m: EnrichedMatch;
   saved: boolean;
@@ -327,6 +388,8 @@ function MatchCard({
   onUnmatch: () => void;
   onReport: () => void;
   onBlock: () => void;
+  onAcceptRequest: () => void;
+  onDeclineRequest: () => void;
 }) {
   const name = m.profile?.display_name || "Traveler";
   const initials = name.split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase();
@@ -403,6 +466,43 @@ function MatchCard({
           {m.mutualInterests.slice(0, 6).map(tag => (
             <Badge key={tag} className="bg-primary/10 text-primary border-0 text-[11px]">{tag}</Badge>
           ))}
+        </div>
+      )}
+
+      {m.pendingJoinRequest && (
+        <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 space-y-2">
+          <div className="flex items-center gap-2 text-xs font-semibold text-primary">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+            </span>
+            Pending Trip Join Request
+          </div>
+          <p className="text-xs text-foreground">
+            Wants to join your trip to <span className="font-bold">{m.pendingJoinRequest.destination}</span>
+          </p>
+          {m.pendingJoinRequest.message && (
+            <p className="text-xs text-muted-foreground bg-card/50 px-2.5 py-2 rounded-lg border border-border/40 italic">
+              "{m.pendingJoinRequest.message}"
+            </p>
+          )}
+          <div className="flex gap-2 pt-1">
+            <Button
+              size="sm"
+              className="flex-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white gap-1"
+              onClick={onAcceptRequest}
+            >
+              <Check className="h-4 w-4" /> Accept
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="flex-1 rounded-xl text-destructive border-destructive/20 hover:bg-destructive/10 gap-1"
+              onClick={onDeclineRequest}
+            >
+              <X className="h-4 w-4" /> Decline
+            </Button>
+          </div>
         </div>
       )}
 

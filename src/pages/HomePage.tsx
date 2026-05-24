@@ -1,4 +1,4 @@
-import { Search, SlidersHorizontal, Plus, Sparkles, TrendingUp, Loader2, ShieldCheck, Heart, MapPin } from "lucide-react";
+import { Search, SlidersHorizontal, Plus, Sparkles, TrendingUp, Loader2, ShieldCheck, Compass, MapPin } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -98,8 +98,8 @@ export default function HomePage() {
             {t("home.subhead")}
           </motion.p>
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="flex flex-col items-center gap-2">
-            <Button variant="gradient" size="lg" className="rounded-full shadow-elevated" onClick={() => navigate("/matches")}>
-              <Heart className="h-4 w-4 mr-1" /> {t("home.cta_find_buddy")}
+            <Button variant="gradient" size="lg" className="rounded-full shadow-elevated" onClick={() => navigate("/trips")}>
+              <Compass className="h-4 w-4 mr-1" /> Explore Trips
             </Button>
             <div className="flex items-center gap-1.5 text-[11px] text-primary-foreground/80">
               <ShieldCheck className="h-3.5 w-3.5 text-accent" />

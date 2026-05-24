@@ -1,5 +1,5 @@
 {
-  "nav": { "home": "Home", "trips": "Trips", "matches": "Matches", "chat": "Chat", "profile": "Profile" },
+  "nav": { "home": "Home", "trips": "Trips", "notifications": "Notifications", "matches": "Matches", "chat": "Chat", "profile": "Profile" },
   "home": {
     "online_count": "{{count}} travelers online",
     "headline": "Never travel alone again",

@@ -289,7 +289,6 @@ export default function ProfilePage() {
   const stats = [
     { label: "Joined", value: myTrips.length.toString(), icon: Compass },
     { label: "Completed", value: pastTrips.length.toString(), icon: CheckCircle2 },
-    { label: "Matches", value: matchCount.toString(), icon: Users },
     { label: "Reviews", value: reviewCount.toString(), icon: Star },
   ];
 
@@ -354,7 +353,7 @@ export default function ProfilePage() {
             <Sparkles className="h-4 w-4 text-accent" />
             <h2 className="font-heading text-sm font-semibold">Travel Stats</h2>
           </div>
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             {stats.map(stat => (
               <div key={stat.label} className="rounded-xl bg-secondary/40 p-2.5 text-center">
                 <stat.icon className="h-4 w-4 mx-auto text-muted-foreground mb-1" />

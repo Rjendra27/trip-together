@@ -8,6 +8,7 @@ import ReportBlockDialog from "@/components/ReportBlockDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
+import { useLocation } from "react-router-dom";
 
 interface ChatConversation {
   user_id: string;
@@ -44,6 +45,7 @@ const formatListTime = (iso?: string) => {
 
 export default function ChatPage() {
   const { user } = useAuth();
+  const location = useLocation();
   const [conversations, setConversations] = useState<ChatConversation[]>([]);
   const [selectedChat, setSelectedChat] = useState<ChatConversation | null>(null);
   const [message, setMessage] = useState("");
@@ -97,8 +99,16 @@ export default function ChatPage() {
       }).sort((a, b) => (b.lastTime || "").localeCompare(a.lastTime || ""));
 
       setConversations(enriched);
+
+      const selectId = location.state?.selectUserId;
+      if (selectId) {
+        const target = enriched.find(c => c.user_id === selectId);
+        if (target) {
+          setSelectedChat(target);
+        }
+      }
     })();
-  }, [user]);
+  }, [user, location.state]);
 
   // Load messages + subscribe realtime
   useEffect(() => {
