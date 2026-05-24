@@ -870,6 +870,13 @@ export default function ProfilePage() {
         onChange={handleAvatarUpload}
         className="hidden"
       />
+      <input
+        ref={coverFileRef}
+        type="file"
+        accept="image/*"
+        onChange={handleCoverUpload}
+        className="hidden"
+      />
     </div>
   );
 }
