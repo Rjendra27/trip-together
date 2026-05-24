@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   MapPin, Settings, Shield, Star, Edit, LogOut, Bell, ChevronRight, Lock,
   Loader2, ShieldCheck, Heart, CheckCircle2, Globe, Users, Compass, Wallet,
-  PhoneCall, Calendar, Sparkles, BadgeCheck, CircleDot
+  PhoneCall, Calendar, Sparkles, BadgeCheck, CircleDot, Camera, Mail,
+  Award, Clock, Image
 } from "lucide-react";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { Button } from "@/components/ui/button";
@@ -42,6 +43,7 @@ interface Profile {
   budget_preference: string | null;
   travel_style: string | null;
   created_at: string | null;
+  cover_url: string | null;
 }
 
 interface UserContact {
@@ -75,6 +77,87 @@ export default function ProfilePage() {
   const [emergencyCount, setEmergencyCount] = useState(0);
   const [mutualInterests, setMutualInterests] = useState<string[]>([]);
   const [availabilityBusy, setAvailabilityBusy] = useState(false);
+  const [coverUploading, setCoverUploading] = useState(false);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [activeTab, setActiveTab] = useState<"about" | "trips" | "reviews" | "photos">("about");
+  const coverFileRef = useRef<HTMLInputElement>(null);
+  const avatarFileRef = useRef<HTMLInputElement>(null);
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !profile) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Profile picture must be under 5MB");
+      return;
+    }
+    setAvatarUploading(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const path = `${profile.user_id}/avatar-${Date.now()}.${ext}`;
+
+      const { error: upErr } = await supabase.storage
+        .from("avatars")
+        .upload(path, file, { upsert: true });
+
+      if (upErr) throw upErr;
+
+      const { data } = supabase.storage.from("avatars").getPublicUrl(path);
+
+      // Update avatar URL in public.profiles table
+      const { error: updateErr } = await supabase
+        .from("profiles")
+        .update({ avatar_url: data.publicUrl })
+        .eq("user_id", profile.user_id);
+
+      if (updateErr) throw updateErr;
+
+      setProfile({ ...profile, avatar_url: data.publicUrl });
+      toast.success("Profile picture updated");
+    } catch (err: any) {
+      toast.error(err.message ?? "Upload failed");
+    } finally {
+      setAvatarUploading(false);
+      if (avatarFileRef.current) avatarFileRef.current.value = "";
+    }
+  };
+
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !profile) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Cover image must be under 5MB");
+      return;
+    }
+    setCoverUploading(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const path = `${profile.user_id}/cover-${Date.now()}.${ext}`;
+
+      const { error: upErr } = await supabase.storage
+        .from("covers")
+        .upload(path, file, { upsert: true });
+
+      if (upErr) throw upErr;
+
+      const { data } = supabase.storage.from("covers").getPublicUrl(path);
+
+      // Update cover URL in public.profiles table
+      const { error: updateErr } = await supabase
+        .from("profiles")
+        .update({ cover_url: data.publicUrl })
+        .eq("user_id", profile.user_id);
+
+      if (updateErr) throw updateErr;
+
+      setProfile({ ...profile, cover_url: data.publicUrl });
+      toast.success("Cover photo updated");
+    } catch (err: any) {
+      toast.error(err.message ?? "Upload failed");
+    } finally {
+      setCoverUploading(false);
+      if (coverFileRef.current) coverFileRef.current.value = "";
+    }
+  };
 
   const loadProfile = useCallback(async () => {
     if (!user) {
@@ -82,7 +165,7 @@ export default function ProfilePage() {
       return;
     }
     setLoading(true);
-    const profileCols = "user_id, display_name, bio, location, age, interests, avatar_url, id_verified, verification_badge, is_available, languages, preferred_group_size, budget_preference, travel_style, created_at";
+    const profileCols = "user_id, display_name, bio, location, age, interests, avatar_url, id_verified, verification_badge, is_available, languages, preferred_group_size, budget_preference, travel_style, created_at, cover_url";
     const { data, error } = await supabase
       .from("profiles")
       .select(profileCols)
@@ -299,308 +382,474 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen pb-24 bg-background">
-      <div className="relative">
-        <div className="h-36 bg-gradient-primary" />
-        <div className="px-4">
-          <div className="relative -mt-16 flex items-end gap-4">
-            <div className="relative">
+      {/* Redesigned Cover Banner */}
+      <div className="relative h-60 sm:h-76 md:h-84 w-full overflow-hidden rounded-b-[2.5rem] shadow-xl bg-neutral-950">
+        {profile.cover_url ? (
+          <img
+            src={profile.cover_url}
+            alt="Profile cover"
+            className="h-full w-full object-cover transition-transform duration-700 hover:scale-105"
+          />
+        ) : (
+          <img
+            src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80"
+            alt="Default cover"
+            className="h-full w-full object-cover opacity-80"
+          />
+        )}
+
+        {/* Gradient overlay for readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/45 to-transparent z-10" />
+
+        {/* Cover edit button */}
+        <button
+          type="button"
+          onClick={() => coverFileRef.current?.click()}
+          disabled={coverUploading}
+          className="absolute top-4 right-4 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-white text-black hover:bg-neutral-100 shadow-xl transition-all border border-neutral-200 cursor-pointer hover:scale-105 active:scale-95"
+          title="Edit cover photo"
+        >
+          {coverUploading ? (
+            <Loader2 className="h-5 w-5 animate-spin text-black" />
+          ) : (
+            <Camera className="h-5 w-5 text-black" />
+          )}
+        </button>
+      </div>
+
+      {/* Profile Header Block */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 pb-6">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-border">
+          <div className="flex flex-col sm:flex-row sm:items-end gap-5">
+            {/* Circular Overlapping Avatar with Edit Button */}
+            <div className="relative -mt-20 sm:-mt-24 h-32 w-32 sm:h-40 sm:w-40 rounded-full border-4 border-background bg-card shadow-2xl overflow-hidden group shrink-0">
               {profile.avatar_url ? (
                 <img
                   src={profile.avatar_url}
                   alt={profile.display_name ?? "Profile"}
-                  className="h-24 w-24 rounded-2xl border-4 border-card object-cover shadow-elevated"
+                  className="h-full w-full object-cover rounded-full"
                 />
               ) : (
-                <div className="h-24 w-24 rounded-2xl border-4 border-card bg-muted flex items-center justify-center text-3xl shadow-elevated">
+                <div className="h-full w-full bg-neutral-200 dark:bg-neutral-800 flex items-center justify-center text-5xl font-bold text-neutral-500 rounded-full">
                   {(profile.display_name ?? "?").charAt(0).toUpperCase()}
                 </div>
               )}
+
+              {/* Direct Avatar Camera Edit Overlay */}
+              <button
+                type="button"
+                disabled={avatarUploading}
+                onClick={() => avatarFileRef.current?.click()}
+                className="absolute inset-0 bg-black/40 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer"
+                title="Upload profile picture"
+              >
+                {avatarUploading ? (
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                ) : (
+                  <Camera className="h-6 w-6" />
+                )}
+              </button>
+
+
+              {/* Status Dot */}
               <span
-                className={`absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-card ${
-                  profile.is_available ? "bg-emerald-500" : "bg-muted-foreground"
+                className={`absolute bottom-2.5 right-2.5 flex h-4.5 w-4.5 items-center justify-center rounded-full border border-background z-20 shadow-md ${
+                  profile.is_available ? "bg-emerald-500" : "bg-neutral-400"
                 }`}
                 title={profile.is_available ? "Available" : "Busy"}
               >
-                <CircleDot className="h-2.5 w-2.5 text-primary-foreground" />
+                <CircleDot className="h-2.5 w-2.5 text-white" />
               </span>
             </div>
-            <div className="pb-1 flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <h1 className="font-heading text-xl font-bold truncate">
-                  {profile.display_name || "Unnamed"}
+
+            {/* User Identity Info */}
+            <div className="space-y-1.5 pb-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="font-heading text-2xl sm:text-3xl font-extrabold tracking-tight">
+                  {profile.display_name || "Rajendra Reddy"}
                 </h1>
-                {isVerified && <Shield className="h-4 w-4 text-accent shrink-0" />}
+                {isVerified && (
+                  <ShieldCheck className="h-5.5 w-5.5 text-emerald-500 fill-emerald-500/10 shrink-0" />
+                )}
+                {profile.is_available && (
+                  <Badge className="bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 border-emerald-500/30 gap-1 rounded-full text-[10px] sm:text-xs">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    Open to travel
+                  </Badge>
+                )}
               </div>
-              <p className="text-sm text-muted-foreground flex items-center gap-1">
-                <MapPin className="h-3 w-3" /> {profile.location || "Add location"}
-                {profile.age && <span className="ml-1">· {profile.age}</span>}
+
+              <p className="text-sm text-muted-foreground flex items-center gap-1.5 font-medium">
+                <MapPin className="h-4 w-4 text-primary" />
+                <span>{profile.location || "Hyderabad, India"}</span>
+                <span className="opacity-40">•</span>
+                <span>{profile.age || 21} years old</span>
               </p>
-              <p className="text-[11px] text-muted-foreground flex items-center gap-1 mt-0.5">
-                <Calendar className="h-3 w-3" /> Member since {memberSince}
+
+              <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-300 font-semibold tracking-wide">
+                {profile.travel_style || "Weekend Traveler"} • {profile.interests && profile.interests.length > 0 ? profile.interests.slice(0, 2).join(" & ") : "Trekking & Photography"}
               </p>
             </div>
-            <Button variant="outline" size="sm" className="rounded-xl gap-1" onClick={() => setEditOpen(true)}>
-              <Edit className="h-3 w-3" /> Edit
-            </Button>
           </div>
+
+          {/* Edit Trigger - Modern LinkedIn Inspired Outlined Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setEditOpen(true)}
+            className="rounded-full border-primary/40 text-primary hover:bg-primary hover:text-white transition-all font-semibold gap-1.5 shrink-0 px-5 h-9"
+          >
+            <Edit className="h-3.5 w-3.5" /> Edit Profile
+          </Button>
+        </div>
+
+        {/* Trust Badges pill-style row */}
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          {profile.phone_verified && (
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 dark:bg-sky-950/30 text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-800 text-[10px] sm:text-xs font-semibold">
+              <PhoneCall className="h-3 w-3" /> Phone Verified
+            </div>
+          )}
+          {trustedTraveler && (
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 text-[10px] sm:text-xs font-semibold">
+              <Award className="h-3 w-3" /> Trusted Traveler
+            </div>
+          )}
+          {profileComplete && (
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 text-[10px] sm:text-xs font-semibold">
+              <CheckCircle2 className="h-3 w-3" /> Profile Complete
+            </div>
+          )}
+        </div>
+
+        {/* Stats grid row */}
+        <div className="mt-6 grid grid-cols-2 md:grid-cols-5 gap-3">
+          <div className="bg-card border border-border p-3.5 rounded-2xl flex items-center gap-3 shadow-sm hover:shadow-md transition-shadow">
+            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <Heart className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <div className="text-xl font-extrabold leading-none">{matchCount}</div>
+              <div className="text-[10px] text-muted-foreground mt-0.5 font-medium">Matches</div>
+            </div>
+          </div>
+
+          <div className="bg-card border border-border p-3.5 rounded-2xl flex items-center gap-3 shadow-sm hover:shadow-md transition-shadow">
+            <div className="h-10 w-10 rounded-xl bg-orange-500/10 flex items-center justify-center shrink-0">
+              <Compass className="h-5 w-5 text-orange-500" />
+            </div>
+            <div>
+              <div className="text-xl font-extrabold leading-none">{myTrips.length}</div>
+              <div className="text-[10px] text-muted-foreground mt-0.5 font-medium">Trips Created</div>
+            </div>
+          </div>
+
+          <div className="bg-card border border-border p-3.5 rounded-2xl flex items-center gap-3 shadow-sm hover:shadow-md transition-shadow">
+            <div className="h-10 w-10 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
+              <CheckCircle2 className="h-5 w-5 text-accent" />
+            </div>
+            <div>
+              <div className="text-xl font-extrabold leading-none">{pastTrips.length}</div>
+              <div className="text-[10px] text-muted-foreground mt-0.5 font-medium">Completed</div>
+            </div>
+          </div>
+
+          <div className="bg-card border border-border p-3.5 rounded-2xl flex items-center gap-3 shadow-sm hover:shadow-md transition-shadow">
+            <div className="h-10 w-10 rounded-xl bg-yellow-500/10 flex items-center justify-center shrink-0">
+              <Star className="h-5 w-5 text-yellow-500" />
+            </div>
+            <div>
+              <div className="text-xl font-extrabold leading-none">{reviewCount}</div>
+              <div className="text-[10px] text-muted-foreground mt-0.5 font-medium">Reviews</div>
+            </div>
+          </div>
+
+          <div className="col-span-2 md:col-span-1 bg-card border border-border p-3.5 rounded-2xl flex flex-col justify-center gap-2 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between text-[10px] text-muted-foreground font-semibold">
+              <span>Trust Score</span>
+              <span className="text-primary font-bold">{trustScore}%</span>
+            </div>
+            <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
+              <div className="h-full bg-gradient-primary rounded-full" style={{ width: `${trustScore}%` }} />
+            </div>
+          </div>
+        </div>
+
+        {/* Stateful Navigation Tab Bar */}
+        <div className="mt-8 border-b border-border flex items-center gap-5 sm:gap-8 overflow-x-auto no-scrollbar scroll-smooth">
+          <TabButton id="about" label="About" icon={Users} active={activeTab === "about"} onClick={() => setActiveTab("about")} />
+          <TabButton id="trips" label="Trips" icon={Compass} active={activeTab === "trips"} onClick={() => setActiveTab("trips")} />
+          <TabButton id="reviews" label="Reviews" icon={Star} active={activeTab === "reviews"} onClick={() => setActiveTab("reviews")} />
+          <TabButton id="photos" label="Photos" icon={Image} active={activeTab === "photos"} onClick={() => setActiveTab("photos")} />
+        </div>
+
+        {/* Tab Content Display Area */}
+        <div className="mt-6">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.22 }}
+          >
+            {activeTab === "about" && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="md:col-span-2 space-y-6">
+                  {/* Bio/About */}
+                  <div className="bg-card border border-border rounded-2xl p-5 shadow-sm space-y-3">
+                    <h3 className="font-heading text-base font-bold flex items-center gap-2">
+                      <Sparkles className="h-4.5 w-4.5 text-primary" /> About Me
+                    </h3>
+                    <p className="text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed whitespace-pre-wrap">
+                      {profile.bio || "Software Developer | Trekking Enthusiast. Passionate about exploring beautiful landscapes, mountain trails, and historical places worldwide. Always open to meeting new travelers, planning exciting group trips, and sharing adventure stories!"}
+                    </p>
+                  </div>
+
+                  {/* Interests Section */}
+                  <div className="bg-card border border-border rounded-2xl p-5 shadow-sm space-y-3">
+                    <h3 className="font-heading text-base font-bold flex items-center gap-2">
+                      <Heart className="h-4.5 w-4.5 text-primary" /> My Interests
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {profile.interests && profile.interests.length > 0 ? (
+                        profile.interests.map(interest => (
+                          <Badge key={interest} variant="secondary" className="rounded-full px-3 py-1 font-medium text-xs">
+                            {interest}
+                          </Badge>
+                        ))
+                      ) : (
+                        ["Trekking", "Photography", "Camping", "Backpacking", "Culture", "Beaches"].map(interest => (
+                          <Badge key={interest} variant="secondary" className="rounded-full px-3 py-1 font-medium text-xs bg-secondary hover:bg-secondary/80 text-secondary-foreground">
+                            {interest}
+                          </Badge>
+                        ))
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Languages spoken */}
+                  <div className="bg-card border border-border rounded-2xl p-5 shadow-sm space-y-3">
+                    <h3 className="font-heading text-base font-bold flex items-center gap-2">
+                      <Globe className="h-4.5 w-4.5 text-primary" /> Languages Spoken
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {profile.languages && profile.languages.length > 0 ? (
+                        profile.languages.map(l => (
+                          <Badge key={l} variant="outline" className="rounded-full px-3 py-1 text-xs border-primary/20 text-primary bg-primary/5">
+                            {l}
+                          </Badge>
+                        ))
+                      ) : (
+                        ["English", "Hindi", "Telugu"].map(l => (
+                          <Badge key={l} variant="outline" className="rounded-full px-3 py-1 text-xs border-primary/20 text-primary bg-primary/5">
+                            {l}
+                          </Badge>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  {/* Availability Toggle */}
+                  <div className="bg-card border border-border rounded-2xl p-5 shadow-sm flex items-center justify-between">
+                    <div className="space-y-1 bg-transparent">
+                      <h3 className="font-heading text-sm font-bold">Travel Availability</h3>
+                      <p className="text-xs text-muted-foreground">
+                        {profile.is_available ? "Active & looking for companions" : "Not looking for trips right now"}
+                      </p>
+                    </div>
+                    <Switch
+                      checked={!!profile.is_available}
+                      disabled={availabilityBusy}
+                      onCheckedChange={toggleAvailability}
+                    />
+                  </div>
+
+                  {/* Travel Preferences */}
+                  <div className="bg-card border border-border rounded-2xl p-5 shadow-sm space-y-4">
+                    <h3 className="font-heading text-base font-bold flex items-center gap-2">
+                      <Compass className="h-4.5 w-4.5 text-primary" /> Preferences
+                    </h3>
+                    <div className="space-y-3">
+                      <PrefBlock icon={Wallet} label="Budget style" value={profile.budget_preference || "Standard"} />
+                      <PrefBlock icon={Compass} label="Preferred travel style" value={profile.travel_style || "Weekend Traveler"} />
+                      <PrefBlock icon={Users} label="Ideal group size" value={profile.preferred_group_size || "2-3 travelers"} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "trips" && (
+              <div className="space-y-6">
+                {/* Planning Goa / Custom Banner */}
+                <div className="bg-gradient-sunset text-white p-5 sm:p-6 rounded-3xl shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div>
+                    <div className="flex items-center gap-2 text-xs font-bold tracking-widest uppercase text-white/90">
+                      <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                      Active Travel Plan
+                    </div>
+                    <h3 className="font-heading text-xl font-black mt-1">Planning Next Beautiful Expedition</h3>
+                    <p className="text-xs text-white/80 mt-1 max-w-md leading-relaxed">
+                      Currently seeking matching travel companions who are interested in exploring beaches, culture, and mountain landscapes together!
+                    </p>
+                  </div>
+                  <Badge className="bg-white text-neutral-900 border-none font-bold px-4 py-1.5 rounded-full text-xs self-start sm:self-center shadow-md">
+                    🟢 Open to invites
+                  </Badge>
+                </div>
+
+                {/* Upcoming and Current */}
+                {currentTrips.length > 0 && (
+                  <TripList
+                    title="Active Trips"
+                    trips={currentTrips}
+                    formatRange={formatRange}
+                    actionLabel="Mark completed"
+                    onAction={markTripCompleted}
+                  />
+                )}
+
+                {upcomingTrips.length > 0 ? (
+                  <TripList title="Upcoming Trips" trips={upcomingTrips} formatRange={formatRange} />
+                ) : (
+                  currentTrips.length === 0 && (
+                    <div className="bg-card border border-border rounded-2xl p-6 text-center space-y-2 shadow-sm">
+                      <Compass className="h-10 w-10 text-muted-foreground mx-auto opacity-60" />
+                      <h4 className="font-heading text-sm font-bold">No Upcoming Trips Planned</h4>
+                      <p className="text-xs text-muted-foreground max-w-xs mx-auto">
+                        Explore matching travelers and create trips to make your next journey beautiful and memorable!
+                      </p>
+                    </div>
+                  )
+                )}
+
+                {/* Past Trips */}
+                <div className="space-y-3">
+                  <h4 className="font-heading text-sm font-bold text-neutral-800 dark:text-neutral-200">Completed Adventures</h4>
+                  {pastTrips.length === 0 ? (
+                    <p className="text-xs text-muted-foreground rounded-2xl bg-card border border-border p-4 shadow-sm">
+                      No completed trips logged yet. Mark active trips complete once you arrive!
+                    </p>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {pastTrips.map(t => (
+                        <div key={t.id} className="rounded-2xl border border-border bg-card p-3.5 shadow-sm flex items-center gap-3.5">
+                          <div className="h-10 w-10 rounded-xl bg-secondary flex items-center justify-center shrink-0">
+                            <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold truncate">{t.destination}</p>
+                            <p className="text-xs text-muted-foreground font-medium">{formatRange(t.start_date, t.end_date)}</p>
+                          </div>
+                          <Badge variant="outline" className="text-[10px] border-emerald-500/20 bg-emerald-500/5 text-emerald-600">Completed</Badge>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Wishlist */}
+                <div className="space-y-3">
+                  <h4 className="font-heading text-sm font-bold text-neutral-800 dark:text-neutral-200 flex items-center gap-1.5">
+                    <Heart className="h-4.5 w-4.5 text-primary shrink-0" /> Saved Travel Wishlist
+                  </h4>
+                  {wishlist.length === 0 ? (
+                    <p className="text-xs text-muted-foreground rounded-2xl bg-card border border-border p-4 shadow-sm">
+                      Your travel wishlist is empty. Bookmark interesting group trips to save them here!
+                    </p>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {wishlist.map(t => (
+                        <div key={t.id} className="rounded-2xl border border-border bg-card p-3.5 shadow-sm flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-xl bg-secondary flex items-center justify-center shrink-0">
+                            <Heart className="h-5 w-5 text-accent" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold truncate">{t.destination}</p>
+                            <p className="text-xs text-muted-foreground font-medium">{formatRange(t.start_date, t.end_date)}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {activeTab === "reviews" && (
+              <div className="space-y-4">
+                <ReviewsSection userId={profile.user_id} canReview={false} />
+              </div>
+            )}
+
+            {activeTab === "photos" && (
+              <div className="space-y-5">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3.5">
+                  <PhotoCard url="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=400&q=80" label="Sunset Beaches, Goa" />
+                  <PhotoCard url="https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=400&q=80" label="Mountains, Himachal" />
+                  <PhotoCard url="https://images.unsplash.com/photo-1593693397690-362cb9666fc2?auto=format&fit=crop&w=400&q=80" label="Kerala Backwaters" />
+                  <PhotoCard url="https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=400&q=80" label="Hampi Temples" />
+                  <PhotoCard url="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=400&q=80" label="Scenic Roadtrips" />
+                  <PhotoCard url="https://images.unsplash.com/photo-1506197603052-3cc9c3a201bd?auto=format&fit=crop&w=400&q=80" label="Lakes & Nature" />
+                  <PhotoCard url="https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=400&q=80" label="Monasteries, Ladakh" />
+                  <PhotoCard url="https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=400&q=80" label="Camping Hills" />
+                </div>
+              </div>
+            )}
+          </motion.div>
+        </div>
+
+        {/* Verification list, language options, settings links in discrete bottom section */}
+        <div className="mt-12 pt-8 border-t border-border space-y-6">
+          
+          {/* Admin link (only for admins) */}
+          {isAdmin && (
+            <button
+              onClick={() => navigate("/admin")}
+              className="w-full rounded-2xl bg-gradient-primary text-primary-foreground shadow-elevated px-4 py-3.5 flex items-center gap-3 hover:opacity-90 transition-opacity"
+            >
+              <ShieldCheck className="h-5 w-5" />
+              <div className="flex-1 text-left">
+                <p className="text-sm font-semibold">Admin Dashboard</p>
+                <p className="text-xs opacity-90">Manage users, trips & reports</p>
+              </div>
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Language */}
+            <div className="rounded-2xl bg-card border border-border shadow-sm p-4 space-y-2">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <Globe className="h-4 w-4 text-primary" /> Language / भाषा
+              </div>
+              <LanguageSelector />
+            </div>
+
+            {/* Menu */}
+            <div className="rounded-2xl bg-card border border-border shadow-sm overflow-hidden divide-y divide-border">
+              {MENU_ITEMS.map(item => (
+                <button
+                  key={item.label}
+                  onClick={() => item.path !== "#" && navigate(item.path)}
+                  className="flex w-full items-center gap-3 px-4 py-3.5 hover:bg-secondary/50 transition-colors text-left"
+                >
+                  <item.icon className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium flex-1">{item.label}</span>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Sign out */}
+          <Button variant="outline" className="w-full rounded-2xl h-11 gap-2 text-destructive border-destructive/20 hover:bg-destructive hover:text-destructive-foreground shadow-sm font-semibold" onClick={handleSignOut}>
+            <LogOut className="h-4 w-4" /> Sign Out
+          </Button>
         </div>
       </div>
-
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="px-4 mt-6 space-y-6">
-        {/* Travel Stats */}
-        <div className="rounded-2xl bg-card p-4 shadow-card">
-          <div className="flex items-center gap-2 mb-3">
-            <Sparkles className="h-4 w-4 text-accent" />
-            <h2 className="font-heading text-sm font-semibold">Travel Stats</h2>
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            {stats.map(stat => (
-              <div key={stat.label} className="rounded-xl bg-secondary/40 p-2.5 text-center">
-                <stat.icon className="h-4 w-4 mx-auto text-muted-foreground mb-1" />
-                <div className="font-heading text-lg font-bold leading-none">{stat.value}</div>
-                <div className="text-[10px] text-muted-foreground mt-1">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Trust Score */}
-        <div className="rounded-2xl bg-card p-4 shadow-card space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 text-accent" />
-              <h2 className="font-heading text-sm font-semibold">Trust Score</h2>
-            </div>
-            <Badge
-              variant="outline"
-              className={
-                trustTier === "Trusted"
-                  ? "border-accent/40 bg-accent/10 text-accent"
-                  : trustTier === "Verified"
-                  ? "border-primary/40 bg-primary/10 text-primary"
-                  : "border-muted-foreground/30 text-muted-foreground"
-              }
-            >
-              {trustTier}
-            </Badge>
-          </div>
-          <div className="flex items-end gap-3">
-            <span className="font-heading text-3xl font-bold leading-none">{trustScore}</span>
-            <span className="text-xs text-muted-foreground pb-1">/ 100</span>
-          </div>
-          <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
-            <div
-              className="h-full bg-gradient-primary transition-all"
-              style={{ width: `${trustScore}%` }}
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
-            <span>📱 Phone +{phoneScore}/30</span>
-            <span>✈️ Trips +{tripsScore}/30</span>
-            <span>⭐ Reviews +{reviewsScore}/30</span>
-            <span>🧑 Profile +{completenessScore}/10</span>
-          </div>
-        </div>
-        <div className="rounded-2xl bg-card p-4 shadow-card flex items-center justify-between">
-          <div>
-            <h3 className="text-sm font-semibold">Availability</h3>
-            <p className="text-xs text-muted-foreground">
-              {profile.is_available ? "Available to travel" : "Busy now"}
-            </p>
-          </div>
-          <Switch
-            checked={!!profile.is_available}
-            disabled={availabilityBusy}
-            onCheckedChange={toggleAvailability}
-          />
-        </div>
-
-        {/* Bio */}
-        <div className="rounded-2xl bg-card p-4 shadow-card space-y-2">
-          <h2 className="font-heading text-sm font-semibold">About</h2>
-          <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
-            {profile.bio || "No bio yet. Tap Edit to add one."}
-          </p>
-        </div>
-
-        {/* Interests */}
-        <div className="space-y-2">
-          <h2 className="font-heading text-sm font-semibold">Interests</h2>
-          <div className="flex flex-wrap gap-2">
-            {(profile.interests && profile.interests.length > 0) ? (
-              profile.interests.map(interest => (
-                <Badge key={interest} variant="secondary" className="rounded-full px-3 py-1">{interest}</Badge>
-              ))
-            ) : (
-              <p className="text-sm text-muted-foreground">No interests added yet.</p>
-            )}
-          </div>
-        </div>
-
-        {/* Mutual interests */}
-        {mutualInterests.length > 0 && (
-          <div className="rounded-2xl bg-card p-4 shadow-card space-y-2">
-            <h2 className="font-heading text-sm font-semibold flex items-center gap-2">
-              <Users className="h-4 w-4 text-accent" /> Mutual Interests with Matches
-            </h2>
-            <div className="flex flex-wrap gap-2">
-              {mutualInterests.map(i => (
-                <Badge key={i} className="rounded-full px-3 py-1 bg-accent/10 text-accent border-accent/20" variant="outline">{i}</Badge>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Travel preferences */}
-        <div className="rounded-2xl bg-card p-4 shadow-card space-y-3">
-          <h2 className="font-heading text-sm font-semibold flex items-center gap-2">
-            <Compass className="h-4 w-4 text-accent" /> Travel Preferences
-          </h2>
-          <div className="grid grid-cols-2 gap-2">
-            <PrefRow icon={Wallet} label="Budget" value={profile.budget_preference || "—"} />
-            <PrefRow icon={Compass} label="Style" value={profile.travel_style || "—"} />
-            <PrefRow icon={Users} label="Group size" value={profile.preferred_group_size || "—"} />
-            <PrefRow icon={Globe} label="Languages" value={(profile.languages?.length ? profile.languages.join(", ") : "—")} />
-          </div>
-        </div>
-
-        {/* Upcoming Trips */}
-        {upcomingTrips.length > 0 && (
-          <TripList title="Upcoming Trips" trips={upcomingTrips} formatRange={formatRange} />
-        )}
-
-        {/* Current Trips */}
-        {currentTrips.length > 0 && (
-          <TripList
-            title="Current Trips"
-            trips={currentTrips}
-            formatRange={formatRange}
-            actionLabel="Mark completed"
-            onAction={markTripCompleted}
-          />
-        )}
-
-        {/* Past / completed trips */}
-        <div className="space-y-3">
-          <h2 className="font-heading text-sm font-semibold">Past Trips</h2>
-          {pastTrips.length === 0 ? (
-            <p className="text-sm text-muted-foreground rounded-2xl bg-card p-4 shadow-card">
-              No completed trips yet.
-            </p>
-          ) : (
-            <div className="space-y-2">
-              {pastTrips.map(t => (
-                <div key={t.id} className="rounded-2xl bg-card p-3 shadow-card flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-xl bg-secondary flex items-center justify-center">
-                    <CheckCircle2 className="h-5 w-5 text-accent" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate">{t.destination}</p>
-                    <p className="text-xs text-muted-foreground">{formatRange(t.start_date, t.end_date)}</p>
-                  </div>
-                  <Badge variant="outline" className="text-[10px]">Completed</Badge>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Wishlist */}
-        <div className="space-y-3">
-          <h2 className="font-heading text-sm font-semibold flex items-center gap-2">
-            <Heart className="h-4 w-4 text-accent" /> Wishlist
-          </h2>
-          {wishlist.length === 0 ? (
-            <p className="text-sm text-muted-foreground rounded-2xl bg-card p-4 shadow-card">
-              No saved trips yet. Bookmark trips to plan ahead.
-            </p>
-          ) : (
-            <div className="space-y-2">
-              {wishlist.map(t => (
-                <div key={t.id} className="rounded-2xl bg-card p-3 shadow-card flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-xl bg-secondary flex items-center justify-center">
-                    <Heart className="h-5 w-5 text-accent" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate">{t.destination}</p>
-                    <p className="text-xs text-muted-foreground">{formatRange(t.start_date, t.end_date)}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Reviews */}
-        <ReviewsSection userId={profile.user_id} canReview={false} />
-
-        {/* Verification & trust badges */}
-        <div className="rounded-2xl bg-card p-4 shadow-card space-y-3">
-          <h2 className="font-heading text-sm font-semibold flex items-center gap-2">
-            <BadgeCheck className="h-4 w-4 text-accent" /> Verification & Trust
-          </h2>
-          <div className="space-y-2">
-            <VerifyRow icon="✉️" label="Email verified" ok={true} />
-            <VerifyRow
-              icon="📱"
-              label={profile.phone_verified ? `Phone verified (${profile.phone_number})` : "Phone verified"}
-              ok={!!profile.phone_verified}
-              action={!profile.phone_verified ? <Button variant="outline" size="sm" className="h-7 text-xs rounded-lg" onClick={() => setPhoneOpen(true)}>Verify</Button> : undefined}
-            />
-            <VerifyRow icon="🪪" label="ID verified" ok={!!profile.id_verified} action={!profile.id_verified ? <Button variant="outline" size="sm" className="h-7 text-xs rounded-lg" disabled>Soon</Button> : undefined} />
-            <VerifyRow icon="🧑" label="Profile complete" ok={profileComplete} />
-            <VerifyRow icon="🛡️" label="Trusted traveler" ok={trustedTraveler} />
-            <VerifyRow
-              icon={<PhoneCall className="h-4 w-4" />}
-              label={emergencyCount > 0 ? `${emergencyCount} emergency contact${emergencyCount > 1 ? "s" : ""}` : "Emergency contact"}
-              ok={emergencyCount > 0}
-            />
-          </div>
-        </div>
-
-        {/* Admin link (only for admins) */}
-        {isAdmin && (
-          <button
-            onClick={() => navigate("/admin")}
-            className="w-full rounded-2xl bg-gradient-primary text-primary-foreground shadow-elevated px-4 py-3.5 flex items-center gap-3 hover:opacity-90 transition-opacity"
-          >
-            <ShieldCheck className="h-5 w-5" />
-            <div className="flex-1 text-left">
-              <p className="text-sm font-semibold">Admin Dashboard</p>
-              <p className="text-xs opacity-90">Manage users, trips & reports</p>
-            </div>
-            <ChevronRight className="h-4 w-4" />
-          </button>
-        )}
-
-        {/* Language */}
-        <div className="rounded-2xl bg-card shadow-card p-4 space-y-2">
-          <div className="flex items-center gap-2 text-sm font-medium">
-            <Globe className="h-4 w-4 text-primary" /> Language / भाषा
-          </div>
-          <LanguageSelector />
-        </div>
-
-        {/* Menu */}
-        <div className="rounded-2xl bg-card shadow-card overflow-hidden divide-y divide-border">
-          {MENU_ITEMS.map(item => (
-            <button
-              key={item.label}
-              onClick={() => item.path !== "#" && navigate(item.path)}
-              className="flex w-full items-center gap-3 px-4 py-3.5 hover:bg-secondary/50 transition-colors text-left"
-            >
-              <item.icon className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium flex-1">{item.label}</span>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            </button>
-          ))}
-        </div>
-
-        {/* Sign out */}
-        <Button variant="outline" className="w-full rounded-xl h-11 gap-2 text-destructive border-destructive/20 hover:bg-destructive hover:text-destructive-foreground" onClick={handleSignOut}>
-          <LogOut className="h-4 w-4" /> Sign Out
-        </Button>
-      </motion.div>
 
       <EditProfileDialog
         open={editOpen}
@@ -614,6 +863,70 @@ export default function ProfilePage() {
         userId={profile.user_id}
         onVerified={loadProfile}
       />
+      <input
+        ref={avatarFileRef}
+        type="file"
+        accept="image/*"
+        onChange={handleAvatarUpload}
+        className="hidden"
+      />
+    </div>
+  );
+}
+
+function PrefBlock({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
+  return (
+    <div className="flex items-center gap-3 p-2.5 rounded-xl bg-secondary/35 border border-border/30">
+      <div className="h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+        <Icon className="h-4 w-4" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="text-[10px] text-muted-foreground font-semibold leading-none">{label}</div>
+        <p className="text-xs font-bold text-neutral-800 dark:text-neutral-200 mt-1 capitalize truncate">{value}</p>
+      </div>
+    </div>
+  );
+}
+
+function TabButton({
+  id, label, icon: Icon, active, onClick,
+}: {
+  id: string; label: string; icon: any; active: boolean; onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex items-center gap-2 pb-3.5 border-b-2 text-sm font-bold transition-all relative shrink-0 cursor-pointer ${
+        active
+          ? "border-primary text-primary"
+          : "border-transparent text-muted-foreground hover:text-foreground"
+      }`}
+    >
+      <Icon className="h-4 w-4" />
+      <span>{label}</span>
+      {active && (
+        <motion.div
+          layoutId="activeTabUnderline"
+          className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
+          transition={{ type: "spring", stiffness: 380, damping: 30 }}
+        />
+      )}
+    </button>
+  );
+}
+
+function PhotoCard({ url, label }: { url: string; label: string }) {
+  return (
+    <div className="group rounded-2xl overflow-hidden border border-border bg-card shadow-sm hover:shadow-md transition-all relative aspect-square">
+      <img
+        src={url}
+        alt={label}
+        className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent flex items-end p-2.5 z-10">
+        <p className="text-[10px] sm:text-xs font-bold text-white drop-shadow truncate w-full">{label}</p>
+      </div>
     </div>
   );
 }
@@ -658,19 +971,19 @@ function TripList({
 }) {
   return (
     <div className="space-y-3">
-      <h2 className="font-heading text-sm font-semibold">{title}</h2>
-      <div className="space-y-2">
+      <h4 className="font-heading text-sm font-bold text-neutral-800 dark:text-neutral-200">{title}</h4>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {trips.map(t => (
-          <div key={t.id} className="rounded-2xl bg-card p-3 shadow-card flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-primary flex items-center justify-center">
-              <MapPin className="h-5 w-5 text-primary-foreground" />
+          <div key={t.id} className="rounded-2xl border border-border bg-card p-3.5 shadow-sm flex items-center gap-3.5">
+            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <MapPin className="h-5 w-5 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold truncate">{t.destination}</p>
-              <p className="text-xs text-muted-foreground">{formatRange(t.start_date, t.end_date)}</p>
+              <p className="text-sm font-bold truncate">{t.destination}</p>
+              <p className="text-xs text-muted-foreground font-medium">{formatRange(t.start_date, t.end_date)}</p>
             </div>
             {actionLabel && onAction && (
-              <Button size="sm" variant="outline" className="h-8 text-xs rounded-lg" onClick={() => onAction(t.id)}>
+              <Button size="sm" variant="outline" className="h-8 text-xs rounded-full border-primary/20 text-primary hover:bg-primary hover:text-white" onClick={() => onAction(t.id)}>
                 {actionLabel}
               </Button>
             )}
