@@ -19,6 +19,7 @@ import ResetPasswordPage from "./pages/ResetPasswordPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import PrivacySafetyPage from "./pages/PrivacySafetyPage";
 import SettingsPage from "./pages/SettingsPage";
+import NotificationSettingsPage from "./pages/NotificationSettingsPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminTrips from "./pages/admin/AdminTrips";
@@ -49,6 +50,7 @@ const App = () => (
             <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="/privacy-safety" element={<PrivacySafetyPage />} />
             <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/notification-settings" element={<NotificationSettingsPage />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/users" element={<AdminUsers />} />
             <Route path="/admin/trips" element={<AdminTrips />} />

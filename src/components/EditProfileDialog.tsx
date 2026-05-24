@@ -9,9 +9,12 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Camera, Loader2, X } from "lucide-react";
 import { z } from "zod";
+import { useTranslation } from "react-i18next";
+import { SUPPORTED_LANGUAGES } from "@/i18n";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const SUGGESTED = ["Trekking", "Photography", "Food", "Culture", "Beach", "Nightlife", "Hiking", "Surfing", "Museums", "Wildlife"];
-const SUGGESTED_LANGS = ["English", "Hindi", "Spanish", "French", "German", "Mandarin", "Japanese", "Arabic", "Portuguese", "Italian"];
+const SUGGESTED_LANGS = ["English", "Hindi", "Telugu", "Tamil", "Kannada", "Malayalam", "Bengali", "Marathi", "Gujarati", "Punjabi"];
 const GROUP_SIZES = ["Solo", "2-3", "4-6", "7+"];
 const BUDGETS = ["Budget", "Standard", "Premium", "Luxury"];
 
@@ -33,6 +36,7 @@ interface Profile {
   languages?: string[] | null;
   preferred_group_size?: string | null;
   budget_preference?: string | null;
+  preferred_language?: string | null;
 }
 
 interface Props {
@@ -43,6 +47,7 @@ interface Props {
 }
 
 export default function EditProfileDialog({ open, onOpenChange, profile, onSaved }: Props) {
+  const { i18n } = useTranslation();
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
   const [location, setLocation] = useState("");
@@ -52,6 +57,7 @@ export default function EditProfileDialog({ open, onOpenChange, profile, onSaved
   const [groupSize, setGroupSize] = useState<string>("");
   const [budget, setBudget] = useState<string>("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [preferredLanguage, setPreferredLanguage] = useState("en");
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -67,6 +73,7 @@ export default function EditProfileDialog({ open, onOpenChange, profile, onSaved
       setGroupSize(profile.preferred_group_size ?? "");
       setBudget(profile.budget_preference ?? "");
       setAvatarUrl(profile.avatar_url);
+      setPreferredLanguage(profile.preferred_language ?? "en");
     }
   }, [open, profile]);
 
@@ -127,9 +134,16 @@ export default function EditProfileDialog({ open, onOpenChange, profile, onSaved
           preferred_group_size: groupSize || null,
           budget_preference: budget || null,
           avatar_url: avatarUrl,
+          preferred_language: preferredLanguage,
         })
         .eq("user_id", profile.user_id);
       if (error) throw error;
+
+      if (preferredLanguage && preferredLanguage !== i18n.language) {
+        await i18n.changeLanguage(preferredLanguage);
+        localStorage.setItem("tripmate_lang", preferredLanguage);
+      }
+
       toast.success("Profile updated");
       onSaved();
       onOpenChange(false);
@@ -243,6 +257,23 @@ export default function EditProfileDialog({ open, onOpenChange, profile, onSaved
                 );
               })}
             </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="pref-lang">Preferred App Language</Label>
+            <Select value={preferredLanguage} onValueChange={setPreferredLanguage}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select App Language" />
+              </SelectTrigger>
+              <SelectContent>
+                {SUPPORTED_LANGUAGES.map((l) => (
+                  <SelectItem key={l.code} value={l.code}>
+                    <span className="font-medium">{l.native}</span>
+                    <span className="ml-2 text-xs text-muted-foreground">{l.label}</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid grid-cols-2 gap-3">

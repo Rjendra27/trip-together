@@ -10,9 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDistanceToNow } from "date-fns";
 
-const PREFS_KEY = "tripmate_notif_prefs";
-type Prefs = { match_alerts: boolean; message_alerts: boolean; trip_alerts: boolean };
-const DEFAULT_PREFS: Prefs = { match_alerts: true, message_alerts: true, trip_alerts: true };
+// Preferences keys moved to dedicated settings page
 
 interface Notification {
   id: string;
@@ -50,13 +48,7 @@ export default function NotificationsPage() {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
-  const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS);
   const [joinRequests, setJoinRequests] = useState<Record<string, { status: string; requester_id: string }>>({});
-
-  useEffect(() => {
-    const raw = localStorage.getItem(PREFS_KEY);
-    if (raw) { try { setPrefs({ ...DEFAULT_PREFS, ...JSON.parse(raw) }); } catch {} }
-  }, []);
 
   useEffect(() => {
     if (!user) { setLoading(false); return; }
@@ -164,12 +156,7 @@ export default function NotificationsPage() {
     toast.success("Trip request declined.");
   };
 
-  const updatePref = (key: keyof Prefs, value: boolean) => {
-    const next = { ...prefs, [key]: value };
-    setPrefs(next);
-    localStorage.setItem(PREFS_KEY, JSON.stringify(next));
-    toast.success("Preference saved");
-  };
+  // Preferences updating moved to dedicated settings page
 
   const markAllRead = async () => {
     if (!user) return;
@@ -203,11 +190,7 @@ export default function NotificationsPage() {
     // notifications don't have a DELETE RLS for users; just clear local state.
   };
 
-  const prefItems: { key: keyof Prefs; label: string; desc: string }[] = [
-    { key: "match_alerts", label: "Match alerts", desc: "When someone matches with you" },
-    { key: "message_alerts", label: "Message alerts", desc: "New chat messages" },
-    { key: "trip_alerts", label: "Trip update alerts", desc: "Join requests and trip changes" },
-  ];
+  // Preference items moved to dedicated settings page
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -233,19 +216,7 @@ export default function NotificationsPage() {
         </div>
       </div>
 
-      <div className="p-4">
-        <div className="rounded-2xl bg-card shadow-card divide-y divide-border">
-          {prefItems.map((it) => (
-            <div key={it.key} className="flex items-center gap-3 p-4">
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium">{it.label}</p>
-                <p className="text-xs text-muted-foreground">{it.desc}</p>
-              </div>
-              <Switch checked={prefs[it.key]} onCheckedChange={(v) => updatePref(it.key, v)} />
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* Notifications list only (Preferences toggles moved to dedicated Settings page) */}
 
       <h2 className="px-4 pt-2 pb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Recent</h2>
 

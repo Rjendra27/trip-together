@@ -4,18 +4,20 @@ import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { useUnreadNotifications } from "@/hooks/useUnreadNotifications";
+import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 
 export default function BottomNav() {
   const location = useLocation();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const unread = useUnreadNotifications();
+  const unreadMessages = useUnreadMessages();
 
   const navItems = [
     { icon: Home, label: t("nav.home"), path: "/", badge: 0 },
     { icon: Map, label: t("nav.trips"), path: "/trips", badge: 0 },
     { icon: Bell, label: t("nav.notifications", "Notifications"), path: "/notifications", badge: unread },
-    { icon: MessageCircle, label: t("nav.chat"), path: "/chat", badge: 0 },
+    { icon: MessageCircle, label: t("nav.chat"), path: "/chat", badge: unreadMessages },
     { icon: User, label: t("nav.profile"), path: "/profile", badge: 0 },
   ];
 

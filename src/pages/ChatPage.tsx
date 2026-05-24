@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Send, ArrowLeft, MoreVertical, MessageCircle, CheckCheck, Check } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,7 @@ import ReportBlockDialog from "@/components/ReportBlockDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 interface ChatConversation {
   user_id: string;
@@ -18,6 +18,8 @@ interface ChatConversation {
   lastMessage?: string;
   lastTime?: string;
   fromMe?: boolean;
+  unreadCount?: number;
+  lastMessageRead?: boolean;
 }
 
 interface Message {
@@ -46,6 +48,7 @@ const formatListTime = (iso?: string) => {
 export default function ChatPage() {
   const { user } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [conversations, setConversations] = useState<ChatConversation[]>([]);
   const [selectedChat, setSelectedChat] = useState<ChatConversation | null>(null);
   const [message, setMessage] = useState("");
@@ -56,59 +59,120 @@ export default function ChatPage() {
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const typingChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
+  const loadConversations = useCallback(async () => {
+    if (!user) return;
+    const { data: matches } = await supabase
+      .from("matches")
+      .select("user_id, matched_user_id, status")
+      .or(`user_id.eq.${user.id},matched_user_id.eq.${user.id}`)
+      .eq("status", "accepted");
+
+    const peerIds = Array.from(new Set(
+      (matches ?? []).map(m => (m.user_id === user.id ? m.matched_user_id : m.user_id))
+    ));
+    if (peerIds.length === 0) {
+      setConversations([]);
+      return;
+    }
+
+    const [{ data: profiles }, { data: msgs }, { data: unreadMsgs }] = await Promise.all([
+      supabase.from("profiles").select("user_id, display_name, avatar_url, online_status").in("user_id", peerIds),
+      supabase.from("messages")
+        .select("sender_id, receiver_id, content, created_at, read")
+        .or(`and(sender_id.eq.${user.id},receiver_id.in.(${peerIds.join(",")})),and(receiver_id.eq.${user.id},sender_id.in.(${peerIds.join(",")}))`)
+        .order("created_at", { ascending: false })
+        .limit(200),
+      supabase.from("messages")
+        .select("sender_id, id")
+        .eq("receiver_id", user.id)
+        .eq("read", false),
+    ]);
+
+    const lastByPeer = new Map<string, { content: string; created_at: string; fromMe: boolean; read: boolean }>();
+    (msgs ?? []).forEach((m: any) => {
+      const peer = m.sender_id === user.id ? m.receiver_id : m.sender_id;
+      if (!lastByPeer.has(peer)) {
+        lastByPeer.set(peer, {
+          content: m.content,
+          created_at: m.created_at,
+          fromMe: m.sender_id === user.id,
+          read: !!m.read
+        });
+      }
+    });
+
+    const unreadCountByPeer = new Map<string, number>();
+    (unreadMsgs ?? []).forEach((m: any) => {
+      unreadCountByPeer.set(m.sender_id, (unreadCountByPeer.get(m.sender_id) || 0) + 1);
+    });
+
+    const enriched = (profiles ?? []).map(p => {
+      const last = lastByPeer.get(p.user_id);
+      return {
+        ...(p as ChatConversation),
+        lastMessage: last?.content,
+        lastTime: last?.created_at,
+        fromMe: last?.fromMe,
+        unreadCount: unreadCountByPeer.get(p.user_id) || 0,
+        lastMessageRead: last?.read,
+      };
+    }).sort((a, b) => (b.lastTime || "").localeCompare(a.lastTime || ""));
+
+    setConversations(enriched);
+
+    const selectId = location.state?.selectUserId;
+    if (selectId) {
+      const target = enriched.find(c => c.user_id === selectId);
+      if (target) {
+        setSelectedChat(prev => prev?.user_id === selectId ? prev : target);
+      }
+    }
+  }, [user, location.state]);
+
   // Load conversations + last message preview
   useEffect(() => {
     if (!user) return;
-    (async () => {
-      const { data: matches } = await supabase
-        .from("matches")
-        .select("user_id, matched_user_id, status")
-        .or(`user_id.eq.${user.id},matched_user_id.eq.${user.id}`)
-        .eq("status", "accepted");
+    loadConversations();
 
-      const peerIds = Array.from(new Set(
-        (matches ?? []).map(m => (m.user_id === user.id ? m.matched_user_id : m.user_id))
-      ));
-      if (peerIds.length === 0) return setConversations([]);
-
-      const [{ data: profiles }, { data: msgs }] = await Promise.all([
-        supabase.from("profiles").select("user_id, display_name, avatar_url, online_status").in("user_id", peerIds),
-        supabase.from("messages")
-          .select("sender_id, receiver_id, content, created_at")
-          .or(`and(sender_id.eq.${user.id},receiver_id.in.(${peerIds.join(",")})),and(receiver_id.eq.${user.id},sender_id.in.(${peerIds.join(",")}))`)
-          .order("created_at", { ascending: false })
-          .limit(200),
-      ]);
-
-      const lastByPeer = new Map<string, { content: string; created_at: string; fromMe: boolean }>();
-      (msgs ?? []).forEach((m: any) => {
-        const peer = m.sender_id === user.id ? m.receiver_id : m.sender_id;
-        if (!lastByPeer.has(peer)) {
-          lastByPeer.set(peer, { content: m.content, created_at: m.created_at, fromMe: m.sender_id === user.id });
+    // Subscribe to new messages & updates to update the list preview & unread counts in real-time
+    const ch = supabase
+      .channel("chats-list-updates")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "messages" },
+        () => {
+          loadConversations();
         }
-      });
+      )
+      .subscribe();
 
-      const enriched = (profiles ?? []).map(p => {
-        const last = lastByPeer.get(p.user_id);
-        return {
-          ...(p as ChatConversation),
-          lastMessage: last?.content,
-          lastTime: last?.created_at,
-          fromMe: last?.fromMe,
-        };
-      }).sort((a, b) => (b.lastTime || "").localeCompare(a.lastTime || ""));
+    return () => {
+      supabase.removeChannel(ch);
+    };
+  }, [user, loadConversations]);
 
-      setConversations(enriched);
+  const markMessagesAsRead = async (peerId: string) => {
+    if (!user) return;
+    const { error } = await supabase
+      .from("messages")
+      .update({ read: true })
+      .eq("sender_id", peerId)
+      .eq("receiver_id", user.id)
+      .eq("read", false);
 
-      const selectId = location.state?.selectUserId;
-      if (selectId) {
-        const target = enriched.find(c => c.user_id === selectId);
-        if (target) {
-          setSelectedChat(target);
-        }
-      }
-    })();
-  }, [user, location.state]);
+    if (error) {
+      console.error("Error marking messages as read:", error);
+    } else {
+      loadConversations();
+    }
+  };
+
+  // Mark selected chat messages as read on open or change
+  useEffect(() => {
+    if (selectedChat?.user_id && user) {
+      markMessagesAsRead(selectedChat.user_id);
+    }
+  }, [selectedChat?.user_id, user]);
 
   // Load messages + subscribe realtime
   useEffect(() => {
@@ -131,7 +195,23 @@ export default function ChatPage() {
         { event: "INSERT", schema: "public", table: "messages", filter: `conversation_id=eq.${convId}` },
         (payload) => {
           const m = payload.new as Message;
+          if (m.sender_id === selectedChat.user_id && m.receiver_id === user.id) {
+            // Mark as read in DB and locally
+            supabase.from("messages").update({ read: true }).eq("id", m.id).then();
+            m.read = true;
+            markMessagesAsRead(selectedChat.user_id);
+          }
           setMessages(prev => prev.some(x => x.id === m.id) ? prev : [...prev, m]);
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "messages", filter: `conversation_id=eq.${convId}` },
+        (payload) => {
+          const updatedMsg = payload.new as Message;
+          setMessages(prev =>
+            prev.map(m => (m.id === updatedMsg.id ? { ...m, read: updatedMsg.read } : m))
+          );
         }
       )
       .on("broadcast", { event: "typing" }, (payload) => {
@@ -179,6 +259,8 @@ export default function ChatPage() {
     if (error) {
       toast({ title: "Failed to send", description: error.message, variant: "destructive" });
       setMessage(content);
+    } else {
+      loadConversations();
     }
   };
 
@@ -190,23 +272,29 @@ export default function ChatPage() {
           <Button variant="ghost" size="icon" className="rounded-full text-primary-foreground hover:bg-primary-foreground/15" onClick={() => setSelectedChat(null)}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div className="relative">
-            <img
-              src={selectedChat.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${selectedChat.user_id}`}
-              alt={selectedChat.display_name || "User"}
-              className="h-10 w-10 rounded-full object-cover ring-2 ring-primary-foreground/40"
-            />
-            {selectedChat.online_status && (
-              <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-emerald-400 ring-2 ring-primary" />
-            )}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold truncate">{selectedChat.display_name || "Traveler"}</p>
-            <p className="text-[11px] text-primary-foreground/85">
-              {isPeerTyping ? (
-                <span className="animate-pulse">typing…</span>
-              ) : selectedChat.online_status ? "Online" : "Last seen recently"}
-            </p>
+          <div
+            onClick={() => navigate(`/profile?id=${selectedChat.user_id}`)}
+            className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer hover:opacity-90 active:scale-98 transition-all"
+            title="View profile"
+          >
+            <div className="relative shrink-0">
+              <img
+                src={selectedChat.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${selectedChat.user_id}`}
+                alt={selectedChat.display_name || "User"}
+                className="h-10 w-10 rounded-full object-cover ring-2 ring-primary-foreground/40"
+              />
+              {selectedChat.online_status && (
+                <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-emerald-400 ring-2 ring-primary" />
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold truncate">{selectedChat.display_name || "Traveler"}</p>
+              <p className="text-[11px] text-primary-foreground/85 font-medium">
+                {isPeerTyping ? (
+                  <span className="animate-pulse">typing…</span>
+                ) : selectedChat.online_status ? "Online" : "Last seen recently"}
+              </p>
+            </div>
           </div>
           <Button variant="ghost" size="icon" className="rounded-full text-primary-foreground hover:bg-primary-foreground/15" onClick={() => setShowReport(true)}>
             <MoreVertical className="h-5 w-5" />
@@ -346,14 +434,34 @@ export default function ChatPage() {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="font-semibold text-sm truncate">{convo.display_name || "Traveler"}</p>
-                  <span className="text-[10px] text-muted-foreground shrink-0">{formatListTime(convo.lastTime)}</span>
+                  <p className={cn("font-semibold text-sm truncate", convo.unreadCount !== undefined && convo.unreadCount > 0 && "text-foreground font-bold")}>
+                    {convo.display_name || "Traveler"}
+                  </p>
+                  <span className={cn("text-[10px] shrink-0", convo.unreadCount !== undefined && convo.unreadCount > 0 ? "text-primary font-bold" : "text-muted-foreground")}>
+                    {formatListTime(convo.lastTime)}
+                  </span>
                 </div>
-                <p className="text-xs text-muted-foreground truncate mt-0.5">
-                  {convo.lastMessage
-                    ? `${convo.fromMe ? "You: " : ""}${convo.lastMessage}`
-                    : "Tap to start chatting"}
-                </p>
+                <div className="flex items-center justify-between gap-2 mt-0.5">
+                  <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                    {convo.lastMessage && convo.fromMe && (
+                      convo.lastMessageRead ? (
+                        <span className="text-[10px] text-emerald-500 font-bold shrink-0">Seen</span>
+                      ) : (
+                        <span className="text-[10px] text-muted-foreground font-semibold shrink-0">Sent</span>
+                      )
+                    )}
+                    <p className={cn("text-xs truncate", convo.unreadCount !== undefined && convo.unreadCount > 0 ? "text-foreground font-semibold" : "text-muted-foreground")}>
+                      {convo.lastMessage
+                        ? convo.lastMessage
+                        : "Tap to start chatting"}
+                    </p>
+                  </div>
+                  {convo.unreadCount !== undefined && convo.unreadCount > 0 && (
+                    <span className="shrink-0 flex h-4.5 min-w-[18px] px-1.5 items-center justify-center rounded-full bg-primary text-primary-foreground text-[9px] font-bold shadow-glow">
+                      {convo.unreadCount}
+                    </span>
+                  )}
+                </div>
               </div>
             </motion.button>
           ))}
