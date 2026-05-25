@@ -224,6 +224,9 @@ export default function TripDetailPage() {
             </div>
             {isOwner && (
               <div className="flex gap-1">
+                <Button variant="ghost" size="icon" className="h-9 w-9 text-primary" onClick={() => navigate(`/trips/create?edit=${trip.id}`)} title="Edit">
+                  <Pencil className="h-4 w-4" />
+                </Button>
                 <Button variant="ghost" size="icon" className="h-9 w-9" onClick={duplicateTrip} title="Duplicate">
                   <Copy className="h-4 w-4" />
                 </Button>

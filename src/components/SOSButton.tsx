@@ -35,7 +35,7 @@ export default function SOSButton() {
       <motion.button
         whileTap={{ scale: 0.9 }}
         onClick={() => setShowPanel(true)}
-        className="fixed bottom-24 left-4 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow-elevated"
+        className="fixed bottom-44 right-5 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow-elevated"
       >
         <Shield className="h-5 w-5" />
       </motion.button>

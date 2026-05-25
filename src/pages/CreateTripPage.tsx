@@ -21,7 +21,7 @@ export default function CreateTripPage() {
   const [selectedType, setSelectedType] = useState<string>("adventure");
   const [submitting, setSubmitting] = useState(false);
 
-  const [destination, setDestination] = useState(params.get("destination") || "");
+  const [destination, setDestination] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [budgetMin, setBudgetMin] = useState("");
@@ -29,10 +29,32 @@ export default function CreateTripPage() {
   const [spotsNeeded, setSpotsNeeded] = useState("2");
   const [description, setDescription] = useState("");
 
+  const editId = params.get("edit");
+
   useEffect(() => {
     const d = params.get("destination");
-    if (d) setDestination(d);
-  }, [params]);
+    if (d && !editId) setDestination(d);
+  }, [params, editId]);
+
+  useEffect(() => {
+    if (!editId) return;
+    (async () => {
+      const { data, error } = await supabase.from("trips").select("*").eq("id", editId).maybeSingle();
+      if (error || !data) {
+        toast({ title: "Error", description: "Trip not found or failed to load.", variant: "destructive" });
+        navigate("/my-trips");
+        return;
+      }
+      setDestination(data.destination);
+      setStartDate(data.start_date);
+      setEndDate(data.end_date);
+      setBudgetMin(data.budget_min?.toString() || "");
+      setBudgetMax(data.budget_max?.toString() || "");
+      setSpotsNeeded(data.spots_needed?.toString() || "2");
+      setSelectedType(data.trip_type || "adventure");
+      setDescription(data.description || "");
+    })();
+  }, [editId, navigate, toast]);
 
   const previewImage = destination ? imageForDestination(destination) : null;
 
@@ -42,33 +64,59 @@ export default function CreateTripPage() {
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      toast({ title: "Sign in required", description: "Please sign in to create a trip.", variant: "destructive" });
+      toast({ title: "Sign in required", description: "Please sign in.", variant: "destructive" });
       setSubmitting(false);
       navigate("/auth");
       return;
     }
 
-    const { error } = await supabase.from("trips").insert({
-      user_id: user.id,
-      destination,
-      start_date: startDate,
-      end_date: endDate,
-      budget_min: budgetMin ? parseInt(budgetMin) : 0,
-      budget_max: budgetMax ? parseInt(budgetMax) : 10000,
-      spots_needed: parseInt(spotsNeeded) || 1,
-      trip_type: selectedType,
-      description,
-    });
+    if (editId) {
+      const { error } = await supabase
+        .from("trips")
+        .update({
+          destination,
+          start_date: startDate,
+          end_date: endDate,
+          budget_min: budgetMin ? parseInt(budgetMin) : 0,
+          budget_max: budgetMax ? parseInt(budgetMax) : 10000,
+          spots_needed: parseInt(spotsNeeded) || 1,
+          trip_type: selectedType,
+          description,
+        })
+        .eq("id", editId);
 
-    setSubmitting(false);
+      setSubmitting(false);
 
-    if (error) {
-      toast({ title: "Failed to create trip", description: error.message, variant: "destructive" });
-      return;
+      if (error) {
+        toast({ title: "Failed to update trip", description: error.message, variant: "destructive" });
+        return;
+      }
+
+      toast({ title: "Trip Updated!", description: "Your changes have been saved." });
+      navigate("/my-trips");
+    } else {
+      const { error } = await supabase.from("trips").insert({
+        user_id: user.id,
+        destination,
+        start_date: startDate,
+        end_date: endDate,
+        budget_min: budgetMin ? parseInt(budgetMin) : 0,
+        budget_max: budgetMax ? parseInt(budgetMax) : 10000,
+        spots_needed: parseInt(spotsNeeded) || 1,
+        trip_type: selectedType,
+        description,
+      });
+
+      setSubmitting(false);
+
+      if (error) {
+        toast({ title: "Failed to create trip", description: error.message, variant: "destructive" });
+        return;
+      }
+
+      toast({ title: "Trip Created!", description: "Your trip has been published." });
+      navigate("/trips");
     }
-
-    toast({ title: "Trip Created!", description: "Your trip has been published." });
-    navigate("/trips");
   };
 
   return (
@@ -77,7 +125,7 @@ export default function CreateTripPage() {
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <h1 className="font-heading text-lg font-semibold">{t("trip.create")}</h1>
+        <h1 className="font-heading text-lg font-semibold">{editId ? "Edit Trip" : t("trip.create")}</h1>
       </div>
 
       {previewImage && (
@@ -184,7 +232,11 @@ export default function CreateTripPage() {
         </div>
 
         <Button type="submit" variant="hero" className="w-full rounded-xl h-12" disabled={submitting}>
-          {submitting ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> {t("trip.publishing")}</> : t("trip.publish")}
+          {submitting ? (
+            <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> {editId ? "Saving..." : t("trip.publishing")}</>
+          ) : (
+            editId ? "Save Changes" : t("trip.publish")
+          )}
         </Button>
       </motion.form>
     </div>

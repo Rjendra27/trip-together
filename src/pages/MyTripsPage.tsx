@@ -131,7 +131,7 @@ export default function MyTripsPage() {
                     onOpen={() => navigate(`/trips/${t.id}`)}
                     actions={
                       <>
-                        <IconBtn label="Edit" onClick={() => navigate(`/trips/${t.id}`)}><Pencil className="h-4 w-4" /></IconBtn>
+                        <IconBtn label="Edit" onClick={() => navigate(`/trips/create?edit=${t.id}`)}><Pencil className="h-4 w-4" /></IconBtn>
                         <IconBtn label="Duplicate" onClick={() => handleDuplicate(t)}><Copy className="h-4 w-4" /></IconBtn>
                         <IconBtn label="Delete" onClick={() => handleDelete(t.id)} destructive><Trash2 className="h-4 w-4" /></IconBtn>
                       </>

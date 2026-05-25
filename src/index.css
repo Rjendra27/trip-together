@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&family=Great+Vibes&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700;800;900&family=Great+Vibes&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,27 +6,27 @@
 
 @layer base {
   :root {
-    /* Warm sunset palette — Airbnb-meets-Tinder, India-first */
-    --background: 36 38% 97%;        /* #faf8f5 cream */
-    --foreground: 20 25% 14%;        /* warm near-black */
+    /* Premium Coral Orange & Soft Peach palette — Airbnb-inspired visual excellence */
+    --background: 0 0% 97.3%;         /* Soft, low-contrast #F8F8F8 background */
+    --foreground: 20 25% 14%;         /* Warm charcoal near-black */
 
-    --card: 0 0% 100%;
+    --card: 0 0% 100%;                /* Pure white cards to float cleanly on soft backdrop */
     --card-foreground: 20 25% 14%;
 
     --popover: 0 0% 100%;
     --popover-foreground: 20 25% 14%;
 
-    --primary: 13 80% 57%;            /* coral / terracotta */
+    --primary: 14 100% 60%;           /* Vibrant Coral Orange (#FF5A36) */
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 22 95% 64%;       /* warm sunset orange */
+    --primary-glow: 20 98% 64%;       /* Warm sunset orange */
 
-    --secondary: 34 30% 93%;          /* warm sand */
-    --secondary-foreground: 20 25% 20%;
+    --secondary: 16 100% 95%;         /* Soft Peach (#FFE8DF) */
+    --secondary-foreground: 14 60% 25%;
 
-    --muted: 34 25% 92%;
-    --muted-foreground: 20 10% 45%;
+    --muted: 16 20% 93%;
+    --muted-foreground: 20 10% 48%;
 
-    --accent: 344 60% 52%;            /* deep berry */
+    --accent: 354 85% 60%;            /* Soft rose pink */
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 75% 55%;
@@ -35,32 +35,32 @@
     --success: 152 55% 42%;
     --success-foreground: 0 0% 100%;
 
-    --border: 30 22% 88%;
-    --input: 30 22% 90%;
-    --ring: 13 80% 57%;
+    --border: 16 20% 90%;
+    --input: 16 20% 92%;
+    --ring: 14 100% 60%;
 
     --radius: 1rem;
 
-    --gradient-primary: linear-gradient(135deg, hsl(13 80% 57%), hsl(344 60% 52%));
-    --gradient-sunset: linear-gradient(135deg, hsl(22 95% 64%), hsl(13 80% 57%) 50%, hsl(344 60% 52%));
-    --gradient-hero: linear-gradient(180deg, hsl(36 38% 97% / 0), hsl(36 38% 97%));
-    --gradient-card: linear-gradient(135deg, hsl(0 0% 100%), hsl(36 38% 98%));
+    --gradient-primary: linear-gradient(135deg, hsl(14 100% 60%), hsl(354 85% 60%));
+    --gradient-sunset: linear-gradient(135deg, hsl(20 98% 64%), hsl(14 100% 60%) 50%, hsl(354 85% 60%));
+    --gradient-hero: linear-gradient(180deg, hsl(0 0% 97.3% / 0), hsl(0 0% 97.3%));
+    --gradient-card: linear-gradient(135deg, hsl(0 0% 100%), hsl(16 100% 98.5%));
 
-    --shadow-card: 0 2px 14px -4px hsl(13 40% 30% / 0.08);
-    --shadow-elevated: 0 18px 40px -12px hsl(13 60% 30% / 0.22);
-    --shadow-glow: 0 10px 30px -8px hsl(13 80% 57% / 0.45);
+    --shadow-card: 0 2px 14px -4px hsl(14 40% 30% / 0.06);
+    --shadow-elevated: 0 18px 40px -12px hsl(14 60% 30% / 0.16);
+    --shadow-glow: 0 10px 30px -8px hsl(14 100% 60% / 0.35);
 
-    --font-heading: 'Space Grotesk', sans-serif;
-    --font-body: 'DM Sans', sans-serif;
+    --font-heading: 'Poppins', sans-serif;
+    --font-body: 'Inter', sans-serif;
 
-    --sidebar-background: 36 38% 97%;
+    --sidebar-background: 0 0% 97.3%;
     --sidebar-foreground: 20 20% 25%;
-    --sidebar-primary: 13 80% 57%;
+    --sidebar-primary: 14 100% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 34 30% 93%;
-    --sidebar-accent-foreground: 20 25% 20%;
-    --sidebar-border: 30 22% 88%;
-    --sidebar-ring: 13 80% 57%;
+    --sidebar-accent: 16 100% 95%;
+    --sidebar-accent-foreground: 14 60% 25%;
+    --sidebar-border: 16 20% 90%;
+    --sidebar-ring: 14 100% 60%;
   }
 
   .dark {
@@ -96,13 +96,16 @@
     -moz-osx-font-smoothing: grayscale;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
     font-family: var(--font-body);
-    font-feature-settings: "ss01", "cv11";
+    line-height: 1.6; /* Better line height */
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
-    letter-spacing: -0.01em;
+    letter-spacing: -0.025em; /* Tight letter-spacing for premium headings */
+    line-height: 1.25; /* Elegant heading line height */
+    @apply font-extrabold tracking-tight; /* Bold strong headings */
   }
 }
 
