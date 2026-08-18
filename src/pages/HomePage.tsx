@@ -126,7 +126,12 @@ export default function HomePage() {
     return () => { supabase.removeChannel(channel); };
   }, []);
 
-  const filteredTrips = trips.filter(t => t.destination.toLowerCase().includes(search.toLowerCase()));
+  const filteredTrips = trips.filter(t => {
+    const today = new Date().toISOString().slice(0, 10);
+    const isPast = t.end_date < today || (t as any).status === "completed" || (t as any).status === "cancelled";
+    if (isPast) return false;
+    return t.destination.toLowerCase().includes(search.toLowerCase());
+  });
 
   return (
     <div className="min-h-screen pb-24">

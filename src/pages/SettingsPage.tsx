@@ -34,7 +34,9 @@ export default function SettingsPage() {
         const s = { ...DEFAULTS, ...JSON.parse(raw) };
         setSettings(s);
         document.documentElement.classList.toggle("dark", s.dark_mode);
-      } catch {}
+      } catch (error) {
+        console.warn("Failed to parse settings:", error);
+      }
     }
   }, []);
 

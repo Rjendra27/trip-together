@@ -339,10 +339,26 @@ export default function ProfilePage() {
     }
   };
 
-  if (authLoading || loading || !profile) {
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background p-6 text-center">
+        <div className="max-w-md space-y-4">
+          <h2 className="font-heading text-2xl font-bold text-foreground">Profile Not Found</h2>
+          <p className="text-muted-foreground">
+            We couldn't load this profile. This can happen if the user doesn't exist or if there is a database column mismatch.
+          </p>
+          <Button className="rounded-xl px-6" onClick={() => navigate("/")}>
+            Go to Home
+          </Button>
+        </div>
       </div>
     );
   }

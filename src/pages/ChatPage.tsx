@@ -151,7 +151,7 @@ export default function ChatPage() {
     };
   }, [user, loadConversations]);
 
-  const markMessagesAsRead = async (peerId: string) => {
+  const markMessagesAsRead = useCallback(async (peerId: string) => {
     if (!user) return;
     const { error } = await supabase
       .from("messages")
@@ -165,14 +165,14 @@ export default function ChatPage() {
     } else {
       loadConversations();
     }
-  };
+  }, [user, loadConversations]);
 
   // Mark selected chat messages as read on open or change
   useEffect(() => {
     if (selectedChat?.user_id && user) {
       markMessagesAsRead(selectedChat.user_id);
     }
-  }, [selectedChat?.user_id, user]);
+  }, [selectedChat?.user_id, user, markMessagesAsRead]);
 
   // Load messages + subscribe realtime
   useEffect(() => {
@@ -228,7 +228,7 @@ export default function ChatPage() {
       supabase.removeChannel(channel);
       typingChannelRef.current = null;
     };
-  }, [user, selectedChat]);
+  }, [user, selectedChat, markMessagesAsRead]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });

@@ -17,19 +17,47 @@ export default function ResetPasswordPage() {
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    // Supabase will set the session from the recovery link automatically.
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
+    // 1. Listen to auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN" || session) {
         setIsReady(true);
       }
     });
 
+    // 2. Check current session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) setIsReady(true);
     });
 
+    // 3. Manually parse hash / query parameters to prevent React Router from stripping them before Supabase reads them
+    const parseUrlTokens = async () => {
+      const hash = window.location.hash || window.location.search;
+      if (!hash) return;
+
+      const cleanHash = hash.startsWith("#") || hash.startsWith("?") ? hash.substring(1) : hash;
+      const params = new URLSearchParams(cleanHash);
+      const accessToken = params.get("access_token");
+      const refreshToken = params.get("refresh_token");
+
+      if (accessToken && refreshToken) {
+        try {
+          const { data, error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+          if (!error && data?.session) {
+            setIsReady(true);
+          }
+        } catch (err) {
+          console.error("Failed to set session from URL:", err);
+        }
+      }
+    };
+
+    parseUrlTokens();
+
     return () => subscription.unsubscribe();
-  }, []);
+  }, [navigate, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

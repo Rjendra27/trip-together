@@ -39,6 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     };
 
+    // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -46,11 +47,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       syncLang(session?.user ?? null);
     });
 
+    // Manually parse hash or search parameters to prevent React Router from stripping them before Supabase reads them
+    const parseUrlTokens = async () => {
+      const hash = window.location.hash || window.location.search;
+      if (!hash) return;
+
+      const cleanHash = hash.startsWith("#") || hash.startsWith("?") ? hash.substring(1) : hash;
+      const params = new URLSearchParams(cleanHash);
+      const accessToken = params.get("access_token");
+      const refreshToken = params.get("refresh_token");
+
+      if (accessToken && refreshToken) {
+        try {
+          const { data, error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+          if (!error && data?.session) {
+            setSession(data.session);
+            setUser(data.session.user);
+            syncLang(data.session.user);
+          }
+        } catch (err) {
+          console.error("Failed to parse URL session tokens:", err);
+        }
+      }
+    };
+
+    // Get current session and parse tokens
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
       syncLang(session?.user ?? null);
+      
+      // Parse tokens if this was a redirect link
+      parseUrlTokens();
     });
 
     return () => subscription.unsubscribe();

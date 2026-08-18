@@ -50,7 +50,13 @@ export default function PrivacySafetyPage() {
 
   useEffect(() => {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) { try { setPrefs({ ...DEFAULTS, ...JSON.parse(raw) }); } catch {} }
+    if (raw) {
+      try {
+        setPrefs({ ...DEFAULTS, ...JSON.parse(raw) });
+      } catch (error) {
+        console.warn("Failed to parse privacy preferences:", error);
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -64,7 +70,7 @@ export default function PrivacySafetyPage() {
       if (b.data) {
         const rows = b.data as any[];
         const ids = rows.map(x => x.blocked_user_id);
-        let names: Record<string, string> = {};
+        const names: Record<string, string> = {};
         if (ids.length) {
           const { data: profs } = await supabase.from("profiles").select("user_id, display_name").in("user_id", ids);
           (profs ?? []).forEach((p: any) => { names[p.user_id] = p.display_name; });

@@ -86,6 +86,10 @@ export default function TripsPage() {
   }, [fetchTrips]);
 
   const filteredTrips = trips.filter(trip => {
+    const today = new Date().toISOString().slice(0, 10);
+    const isPast = trip.end_date < today || trip.status === "completed" || trip.status === "cancelled";
+    if (isPast) return false;
+
     const matchesFilter = activeFilter === "All" || (trip.trip_type || "").toLowerCase() === activeFilter.toLowerCase();
     const matchesSearch = trip.destination.toLowerCase().includes(search.toLowerCase());
     return matchesFilter && matchesSearch;

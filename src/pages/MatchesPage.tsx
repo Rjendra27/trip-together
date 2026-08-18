@@ -260,12 +260,17 @@ export default function MatchesPage() {
   };
 
   const handleSave = (matchId: string) => {
+    const isAdding = !savedIds.has(matchId);
     setSavedIds(prev => {
       const next = new Set(prev);
-      next.has(matchId) ? next.delete(matchId) : next.add(matchId);
+      if (isAdding) {
+        next.add(matchId);
+      } else {
+        next.delete(matchId);
+      }
       return next;
     });
-    toast({ title: savedIds.has(matchId) ? "Removed from saved" : "Saved match" });
+    toast({ title: isAdding ? "Saved match" : "Removed from saved" });
   };
 
   const handleUnmatch = async (m: EnrichedMatch) => {

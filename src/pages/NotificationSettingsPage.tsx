@@ -45,7 +45,9 @@ export default function NotificationSettingsPage() {
     if (rawAlerts) {
       try {
         setAlerts({ ...DEFAULT_ALERTS, ...JSON.parse(rawAlerts) });
-      } catch {}
+      } catch (error) {
+        console.warn("Failed to parse alerts preferences:", error);
+      }
     }
 
     // Load channel delivery settings
@@ -53,7 +55,9 @@ export default function NotificationSettingsPage() {
     if (rawDelivery) {
       try {
         setDelivery({ ...DEFAULT_DELIVERY, ...JSON.parse(rawDelivery) });
-      } catch {}
+      } catch (error) {
+        console.warn("Failed to parse delivery preferences:", error);
+      }
     }
   }, []);
 
