@@ -25,7 +25,17 @@ export default function AuthPage() {
     try {
       if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        if (error) {
+          if (error.message.toLowerCase().includes("email not confirmed")) {
+            toast({
+              title: "Email Verification Required",
+              description: "Please check your inbox at your email address and click the verification link before logging in.",
+              variant: "destructive",
+            });
+            return;
+          }
+          throw error;
+        }
         navigate("/");
       } else {
         const { error } = await supabase.auth.signUp({
@@ -37,7 +47,11 @@ export default function AuthPage() {
           },
         });
         if (error) throw error;
-        toast({ title: "Check your email", description: "We sent you a verification link." });
+        toast({
+          title: "Registration Successful",
+          description: "We sent you a verification link. Please check your inbox and verify your email before logging in.",
+        });
+        setIsLogin(true);
       }
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
